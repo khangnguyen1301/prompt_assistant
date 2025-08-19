@@ -24,7 +24,7 @@ export declare class AuthService {
     private readonly logger;
     constructor(prisma: PrismaService, configService: ConfigService);
     verifyClerkToken(token: string): Promise<AuthenticatedUser>;
-    saveOrUpdateUser(clerkUser: ClerkUser, token: string, session: any): Promise<AuthenticatedUser>;
+    saveOrUpdateUser(clerkUser: any, token: string, session: any): Promise<AuthenticatedUser>;
     getUserByToken(token: string): Promise<AuthenticatedUser | null>;
     invalidateSession(token: string): Promise<boolean>;
     saveOrUpdateMockUser(mockUser: any, token: string): Promise<AuthenticatedUser>;

@@ -23,10 +23,10 @@ export declare class ConversationsService {
         };
     } & {
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        title: string;
     }>;
     findAllByUser(userId: string, page?: number, limit?: number): Promise<{
         conversations: ({
@@ -43,10 +43,10 @@ export declare class ConversationsService {
             };
         } & {
             id: string;
+            title: string;
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            title: string;
         })[];
         pagination: {
             page: number;
@@ -73,10 +73,10 @@ export declare class ConversationsService {
         }[];
     } & {
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        title: string;
     }>;
     update(id: string, userId: string, data: UpdateConversationDto): Promise<{
         messages: {
@@ -89,23 +89,23 @@ export declare class ConversationsService {
         }[];
     } & {
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        title: string;
     }>;
     delete(id: string, userId: string): Promise<{
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        title: string;
     }>;
     updateLastActivity(id: string): Promise<{
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        title: string;
     }>;
 }

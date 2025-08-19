@@ -5,26 +5,26 @@ export declare class MessagesController {
     constructor(messagesService: MessagesService);
     create(user: AuthUser, createMessageDto: CreateMessageDto): Promise<{
         id: string;
+        role: import(".prisma/client").$Enums.Role;
+        content: string;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         conversationId: string;
-        role: import(".prisma/client").$Enums.Role;
-        content: string;
     }>;
     findByConversation(user: AuthUser, conversationId: string, page?: string, limit?: string): Promise<{
         messages: ({
             prompts: {
                 id: string;
-                structuredPrompt: import("@prisma/client/runtime/library").JsonValue;
                 createdAt: Date;
+                structuredPrompt: import("@prisma/client/runtime/library").JsonValue;
             }[];
         } & {
             id: string;
+            role: import(".prisma/client").$Enums.Role;
+            content: string;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdAt: Date;
             conversationId: string;
-            role: import(".prisma/client").$Enums.Role;
-            content: string;
         })[];
         pagination: {
             page: number;
@@ -34,32 +34,32 @@ export declare class MessagesController {
         };
     }>;
     findOne(user: AuthUser, id: string): Promise<{
+        conversation: {
+            userId: string;
+        };
         prompts: {
             id: string;
-            originalInput: string;
-            structuredPrompt: import("@prisma/client/runtime/library").JsonValue;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdAt: Date;
             userId: string;
             messageId: string | null;
+            originalInput: string;
+            structuredPrompt: import("@prisma/client/runtime/library").JsonValue;
         }[];
-        conversation: {
-            userId: string;
-        };
     } & {
         id: string;
+        role: import(".prisma/client").$Enums.Role;
+        content: string;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         conversationId: string;
-        role: import(".prisma/client").$Enums.Role;
-        content: string;
     }>;
     delete(user: AuthUser, id: string): Promise<{
         id: string;
+        role: import(".prisma/client").$Enums.Role;
+        content: string;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         conversationId: string;
-        role: import(".prisma/client").$Enums.Role;
-        content: string;
     }>;
 }

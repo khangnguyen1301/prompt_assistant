@@ -37,7 +37,7 @@ export class MessagesController {
     @CurrentUser() user: AuthUser,
     @Body() createMessageDto: CreateMessageDto
   ) {
-    return this.messagesService.create(createMessageDto, user.clerkId);
+    return this.messagesService.create(createMessageDto, user.id); // Use internal UUID
   }
 
   @Get("conversation/:conversationId")
@@ -51,7 +51,7 @@ export class MessagesController {
   ) {
     return this.messagesService.findByConversation(
       conversationId,
-      user.clerkId,
+      user.id, // Use internal UUID
       parseInt(page),
       parseInt(limit)
     );
@@ -61,7 +61,7 @@ export class MessagesController {
   @ApiOperation({ summary: "Get message by ID" })
   @ApiResponse({ status: 200, description: "Message retrieved successfully" })
   async findOne(@CurrentUser() user: AuthUser, @Param("id") id: string) {
-    return this.messagesService.findOne(id, user.clerkId);
+    return this.messagesService.findOne(id, user.id); // Use internal UUID
   }
 
   @Delete(":id")
@@ -69,6 +69,6 @@ export class MessagesController {
   @ApiOperation({ summary: "Delete message" })
   @ApiResponse({ status: 204, description: "Message deleted successfully" })
   async delete(@CurrentUser() user: AuthUser, @Param("id") id: string) {
-    return this.messagesService.delete(id, user.clerkId);
+    return this.messagesService.delete(id, user.id); // Use internal UUID
   }
 }

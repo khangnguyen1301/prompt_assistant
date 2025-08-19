@@ -12,7 +12,7 @@ export interface GeneratePromptDto {
   conversationId?: string;
   options?: {
     language?: "vi" | "en";
-    style?: "formal" | "casual" | "technical";
+    style?: "formal" | "casual" | "technical" | "professional";
     includeExamples?: boolean;
   };
 }
@@ -52,7 +52,7 @@ export class PromptsService {
 
       // Find user by clerkId to get database userId
       const user = await this.prisma.user.findUnique({
-        where: { clerkId },
+        where: { id: clerkId },
       });
 
       if (!user) {

@@ -24,8 +24,10 @@ let AuthService = AuthService_1 = class AuthService {
     async verifyClerkToken(token) {
         try {
             if (this.configService.get("NODE_ENV") === "production") {
+                this.logger.debug("Production mode: verifying with Clerk API");
+                this.logger.debug(`Token: ${token?.substring(0, 20)}...`);
                 const session = await clerk_sdk_node_1.clerkClient.verifyToken(token, {
-                    issuer: `https://clerk.${this.configService.get("CLERK_DOMAIN") || "dev"}.lcl.dev`,
+                    issuer: `https://fresh-cougar-64.clerk.accounts.dev`,
                     secretKey: this.configService.get("CLERK_SECRET_KEY"),
                 });
                 if (!session || !session.sub) {
@@ -52,13 +54,26 @@ let AuthService = AuthService_1 = class AuthService {
             }
         }
         catch (error) {
-            this.logger.error("Token verification failed:", error);
-            throw new common_1.UnauthorizedException("Authentication failed");
+            this.logger.error("Token verification failed:", {
+                error: error.message,
+                stack: error.stack,
+                type: error.constructor.name,
+                tokenLength: token?.length,
+            });
+            if (error.message?.includes("fetch failed")) {
+                this.logger.error("Network error - check internet connection and Clerk service status");
+            }
+            throw new common_1.UnauthorizedException(`Authentication failed: ${error.message}`);
         }
     }
     async saveOrUpdateUser(clerkUser, token, session) {
-        const primaryEmail = clerkUser.email_addresses?.[0]?.email_address;
+        this.logger.debug("Clerk user object:", JSON.stringify(clerkUser, null, 2));
+        const primaryEmail = clerkUser.email_addresses?.[0]?.email_address ||
+            clerkUser.primary_email_address?.email_address ||
+            clerkUser.email ||
+            clerkUser.emailAddresses?.[0]?.emailAddress;
         if (!primaryEmail) {
+            this.logger.error("Available user properties:", Object.keys(clerkUser));
             throw new common_1.UnauthorizedException("User email not found");
         }
         try {
@@ -81,23 +96,51 @@ let AuthService = AuthService_1 = class AuthService {
             });
             const expiresAt = new Date();
             expiresAt.setHours(expiresAt.getHours() + 1);
-            await this.prisma.userSession.upsert({
+            const sessionId = `${user.id}_${session.sid || Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const existingSession = await this.prisma.userSession.findUnique({
                 where: { clerkToken: token },
-                update: {
-                    isActive: true,
-                    expiresAt,
-                    lastActivity: new Date(),
-                    updatedAt: new Date(),
-                },
-                create: {
-                    userId: user.id,
-                    clerkToken: token,
-                    sessionId: session.sid || `session_${Date.now()}`,
-                    isActive: true,
-                    expiresAt,
-                    lastActivity: new Date(),
-                },
             });
+            if (existingSession) {
+                await this.prisma.userSession.update({
+                    where: { id: existingSession.id },
+                    data: {
+                        isActive: true,
+                        expiresAt,
+                        lastActivity: new Date(),
+                        updatedAt: new Date(),
+                    },
+                });
+            }
+            else {
+                const existingSessionById = await this.prisma.userSession.findUnique({
+                    where: { sessionId },
+                });
+                if (existingSessionById) {
+                    const uniqueSessionId = `${user.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    await this.prisma.userSession.create({
+                        data: {
+                            userId: user.id,
+                            clerkToken: token,
+                            sessionId: uniqueSessionId,
+                            isActive: true,
+                            expiresAt,
+                            lastActivity: new Date(),
+                        },
+                    });
+                }
+                else {
+                    await this.prisma.userSession.create({
+                        data: {
+                            userId: user.id,
+                            clerkToken: token,
+                            sessionId,
+                            isActive: true,
+                            expiresAt,
+                            lastActivity: new Date(),
+                        },
+                    });
+                }
+            }
             this.logger.log(`User authenticated and saved: ${user.email}`);
             return {
                 id: user.id,
@@ -210,10 +253,7 @@ let AuthService = AuthService_1 = class AuthService {
         try {
             const result = await this.prisma.userSession.deleteMany({
                 where: {
-                    OR: [
-                        { expiresAt: { lt: new Date() } },
-                        { isActive: false },
-                    ],
+                    OR: [{ expiresAt: { lt: new Date() } }, { isActive: false }],
                 },
             });
             this.logger.log(`Cleaned ${result.count} expired sessions`);

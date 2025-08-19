@@ -18,6 +18,7 @@ export function ChatArea({
   isLoading,
   onSendMessage,
 }: ChatAreaProps) {
+  console.log("🚀 ~ ChatArea ~ messages:", messages);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -82,9 +83,11 @@ export function ChatArea({
           </div>
         ) : (
           <>
-            {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
-            ))}
+            {messages
+              .filter((message) => message && message.id) // Filter out undefined/null messages
+              .map((message) => (
+                <MessageBubble key={message.id} message={message} />
+              ))}
             {isLoading && (
               <div className="flex items-center space-x-2 text-gray-500">
                 <Loader2 className="w-4 h-4 animate-spin" />

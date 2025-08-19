@@ -6,41 +6,41 @@ export declare class ConversationsController {
     create(user: AuthUser, createConversationDto: CreateConversationDto): Promise<{
         messages: {
             id: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdAt: Date;
             conversationId: string;
             role: import(".prisma/client").$Enums.Role;
             content: string;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
         }[];
         _count: {
             messages: number;
         };
     } & {
         id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
         title: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
     }>;
     findAll(user: AuthUser, page?: string, limit?: string): Promise<{
         conversations: ({
             messages: {
                 id: string;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 createdAt: Date;
                 conversationId: string;
                 role: import(".prisma/client").$Enums.Role;
                 content: string;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
             }[];
             _count: {
                 messages: number;
             };
         } & {
             id: string;
-            createdAt: Date;
-            userId: string;
-            updatedAt: Date;
             title: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
         })[];
         pagination: {
             page: number;
@@ -59,40 +59,40 @@ export declare class ConversationsController {
         };
         messages: {
             id: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdAt: Date;
             conversationId: string;
             role: import(".prisma/client").$Enums.Role;
             content: string;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
         }[];
     } & {
         id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
         title: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
     }>;
     update(user: AuthUser, id: string, updateConversationDto: UpdateConversationDto): Promise<{
         messages: {
             id: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdAt: Date;
             conversationId: string;
             role: import(".prisma/client").$Enums.Role;
             content: string;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
         }[];
     } & {
         id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
         title: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
     }>;
     delete(user: AuthUser, id: string): Promise<{
         id: string;
-        createdAt: Date;
-        userId: string;
-        updatedAt: Date;
         title: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
     }>;
 }

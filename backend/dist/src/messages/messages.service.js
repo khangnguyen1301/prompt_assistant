@@ -34,7 +34,7 @@ let MessagesService = class MessagesService {
         const message = await this.prisma.message.create({
             data: {
                 conversationId: data.conversationId,
-                role: data.role,
+                role: data.role.toUpperCase(),
                 content: data.content,
                 metadata: data.metadata,
             },

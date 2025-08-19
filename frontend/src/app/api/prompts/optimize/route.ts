@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 // Types for the optimization request and response
 interface OptimizeRequest {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     let authToken = "";
 
     if (process.env.NODE_ENV !== "development") {
-      const { userId: clerkUserId } = await auth();
+      const { userId: clerkUserId, getToken } = await auth();
       if (!clerkUserId) {
         return NextResponse.json(
           {
@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
       }
       userId = clerkUserId;
       // Get the token for backend authentication
-      const { getToken } = await auth();
       authToken = (await getToken()) || "";
+      console.log("🚀 ~ POST ~ authToken:", authToken);
     }
 
     const startTime = Date.now();

@@ -30,7 +30,7 @@ let PromptsService = class PromptsService {
                 throw new common_1.BadRequestException("User input is required");
             }
             const user = await this.prisma.user.findUnique({
-                where: { clerkId },
+                where: { id: clerkId },
             });
             if (!user) {
                 throw new common_1.BadRequestException("User not found");

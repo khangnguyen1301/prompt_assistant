@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useAuth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { Sidebar } from "./sidebar";
 import { ChatArea } from "./chat-area";
+import { useConversations } from "@/hooks/useConversations";
+import { useMessages } from "@/hooks/useMessages";
+import { usePrompts } from "@/hooks/usePrompts";
 
 export interface Conversation {
   id: string;
@@ -19,6 +22,7 @@ export interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+  conversationId: string; // Make it required to match useMessages
   metadata?: {
     optimizedPrompt?: {
       goal: string;
@@ -35,13 +39,34 @@ export interface Message {
 
 export function ChatLayout() {
   const { isLoaded, isSignedIn, user } = useUser();
+  const { getToken } = useAuth();
 
   const [currentConversationId, setCurrentConversationId] = useState<
     string | null
   >(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Use custom hooks for data management
+  const {
+    conversations,
+    loading: conversationsLoading,
+    createConversation,
+    updateConversation,
+  } = useConversations();
+
+  const {
+    messages,
+    loading: messagesLoading,
+    sendMessage,
+    addMessage,
+    clearMessages,
+  } = useMessages(currentConversationId);
+
+  const {
+    optimizePrompt,
+    loading: promptsLoading,
+    error: promptsError,
+  } = usePrompts();
 
   // Redirect to sign-in if not authenticated
   if (isLoaded && !isSignedIn) {
@@ -58,13 +83,11 @@ export function ChatLayout() {
 
   const handleNewConversation = () => {
     setCurrentConversationId(null);
-    setMessages([]);
+    clearMessages();
   };
 
   const handleSelectConversation = (conversationId: string) => {
     setCurrentConversationId(conversationId);
-    // Load messages for this conversation
-    // This will be implemented with API calls
   };
 
   const handleSendMessage = async (content: string) => {
@@ -72,50 +95,80 @@ export function ChatLayout() {
 
     setIsLoading(true);
 
-    // Add user message immediately
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content,
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-
     try {
-      // Call API to generate optimized prompt
-      const response = await fetch("/api/prompts/optimize", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: content,
-        }),
-      });
+      let conversationId = currentConversationId;
 
-      if (!response.ok) {
-        throw new Error("Failed to optimize prompt");
+      // Create new conversation if none exists
+      if (!conversationId) {
+        const newConversation = await createConversation(
+          content.slice(0, 50) + (content.length > 50 ? "..." : "")
+        );
+
+        if (!newConversation) {
+          throw new Error("Failed to create conversation");
+        }
+
+        conversationId = newConversation.id;
+        setCurrentConversationId(conversationId);
       }
 
-      const data = await response.json();
+      // Add user message immediately to UI
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        role: "user",
+        content,
+        timestamp: new Date().toISOString(),
+        conversationId: conversationId || "", // Ensure it's never null
+      };
+
+      addMessage(userMessage);
+
+      // Send message to backend
+      await sendMessage(content, conversationId || undefined);
+
+      // Call prompt optimization using hook
+      const optimizationResult = await optimizePrompt({
+        userInput: content,
+        options: {
+          language: "vi",
+          style: "professional",
+          includeExamples: true,
+        },
+        conversationId: conversationId || undefined,
+      });
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content:
-          data.optimizedPrompt?.rawText ||
-          data.message ||
+          optimizationResult?.optimizedPrompt?.rawText ||
           "Prompt optimized successfully",
         timestamp: new Date().toISOString(),
+        conversationId: conversationId || "", // Ensure it's never null
         metadata: {
-          optimizedPrompt: data.optimizedPrompt,
-          processingTime: data.processingTime,
-          tokensUsed: data.tokensUsed,
+          optimizedPrompt: optimizationResult?.optimizedPrompt,
+          processingTime: optimizationResult?.metadata?.processingTime,
+          tokensUsed: optimizationResult?.metadata?.tokensUsed,
         },
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
+      // Add assistant message to UI
+      addMessage(assistantMessage);
+
+      // Also save assistant message to database
+      await sendMessage(
+        assistantMessage.content,
+        conversationId || undefined,
+        "assistant", // Specify role as assistant
+        assistantMessage.metadata // Include metadata
+      );
+
+      // Update conversation timestamp
+      if (conversationId) {
+        await updateConversation(conversationId, {
+          updatedAt: new Date().toISOString(),
+        });
+      }
     } catch (error) {
       console.error("Error sending message:", error);
 
@@ -126,14 +179,15 @@ export function ChatLayout() {
         content:
           "Sorry, I encountered an error while optimizing your prompt. Please try again.",
         timestamp: new Date().toISOString(),
+        conversationId: currentConversationId || "", // Ensure it's never null
       };
 
-      setMessages((prev) => [...prev, errorMessage]);
+      addMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
-
+  console.log(messages);
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar
@@ -141,12 +195,13 @@ export function ChatLayout() {
         currentConversationId={currentConversationId}
         onNewConversation={handleNewConversation}
         onSelectConversation={handleSelectConversation}
+        loading={conversationsLoading}
       />
 
       <div className="flex-1 flex flex-col">
         <ChatArea
           messages={messages}
-          isLoading={isLoading}
+          isLoading={isLoading || messagesLoading}
           onSendMessage={handleSendMessage}
         />
       </div>

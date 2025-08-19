@@ -35,8 +35,12 @@ let ClerkAuthGuard = ClerkAuthGuard_1 = class ClerkAuthGuard {
                 request.user = user;
                 return true;
             }
-            const authHeader = request.headers.authorization;
+            console.log("🚀 ~ canActivate ~ request.headers:", request.headers);
+            const authHeader = request.headers.authorization || request.headers.Authorization;
+            this.logger.debug(`Production mode - Auth header: ${authHeader ? "present" : "missing"}`);
             if (!authHeader || !authHeader.startsWith("Bearer ")) {
+                this.logger.error(`Invalid auth header: ${authHeader}`);
+                this.logger.error(`All headers:`, JSON.stringify(request.headers, null, 2));
                 throw new common_1.UnauthorizedException("No valid authorization header found");
             }
             const token = authHeader.substring(7);
