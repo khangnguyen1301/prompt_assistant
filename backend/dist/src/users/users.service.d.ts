@@ -17,62 +17,62 @@ export declare class UsersService {
     constructor(prisma: PrismaService);
     createFromClerk(data: CreateUserFromClerkDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         clerkId: string;
         email: string;
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     updateFromClerk(clerkId: string, data: UpdateUserFromClerkDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         clerkId: string;
         email: string;
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     deleteByClerkId(clerkId: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         clerkId: string;
         email: string;
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     findByClerkId(clerkId: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         clerkId: string;
         email: string;
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     findById(id: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         clerkId: string;
         email: string;
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     upsertFromClerk(data: CreateUserFromClerkDto): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         clerkId: string;
         email: string;
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }

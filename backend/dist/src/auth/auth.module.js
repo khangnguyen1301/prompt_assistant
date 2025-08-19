@@ -18,7 +18,7 @@ exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         controllers: [auth_controller_1.AuthController],
         providers: [auth_service_1.AuthService, clerk_auth_guard_1.ClerkAuthGuard],
-        exports: [clerk_auth_guard_1.ClerkAuthGuard],
+        exports: [auth_service_1.AuthService, clerk_auth_guard_1.ClerkAuthGuard],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

@@ -25,6 +25,7 @@
     "db:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "@google/generative-ai": "^0.2.1",
     "@nestjs/cache-manager": "^2.1.0",
     "@nestjs/common": "^10.3.0",

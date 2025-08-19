@@ -19,8 +19,8 @@ export declare class ConversationsController {
         id: string;
         createdAt: Date;
         userId: string;
-        title: string;
         updatedAt: Date;
+        title: string;
     }>;
     findAll(user: AuthUser, page?: string, limit?: string): Promise<{
         conversations: ({
@@ -39,8 +39,8 @@ export declare class ConversationsController {
             id: string;
             createdAt: Date;
             userId: string;
-            title: string;
             updatedAt: Date;
+            title: string;
         })[];
         pagination: {
             page: number;
@@ -69,8 +69,8 @@ export declare class ConversationsController {
         id: string;
         createdAt: Date;
         userId: string;
-        title: string;
         updatedAt: Date;
+        title: string;
     }>;
     update(user: AuthUser, id: string, updateConversationDto: UpdateConversationDto): Promise<{
         messages: {
@@ -85,14 +85,14 @@ export declare class ConversationsController {
         id: string;
         createdAt: Date;
         userId: string;
-        title: string;
         updatedAt: Date;
+        title: string;
     }>;
     delete(user: AuthUser, id: string): Promise<{
         id: string;
         createdAt: Date;
         userId: string;
-        title: string;
         updatedAt: Date;
+        title: string;
     }>;
 }

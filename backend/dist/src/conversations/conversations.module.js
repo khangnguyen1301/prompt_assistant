@@ -10,11 +10,13 @@ exports.ConversationsModule = void 0;
 const common_1 = require("@nestjs/common");
 const conversations_controller_1 = require("./conversations.controller");
 const conversations_service_1 = require("./conversations.service");
+const auth_module_1 = require("../auth/auth.module");
 let ConversationsModule = class ConversationsModule {
 };
 exports.ConversationsModule = ConversationsModule;
 exports.ConversationsModule = ConversationsModule = __decorate([
     (0, common_1.Module)({
+        imports: [auth_module_1.AuthModule],
         controllers: [conversations_controller_1.ConversationsController],
         providers: [conversations_service_1.ConversationsService],
         exports: [conversations_service_1.ConversationsService],

@@ -10,11 +10,13 @@ exports.PromptsModule = void 0;
 const common_1 = require("@nestjs/common");
 const prompts_controller_1 = require("./prompts.controller");
 const prompts_service_1 = require("./prompts.service");
+const auth_module_1 = require("../auth/auth.module");
 let PromptsModule = class PromptsModule {
 };
 exports.PromptsModule = PromptsModule;
 exports.PromptsModule = PromptsModule = __decorate([
     (0, common_1.Module)({
+        imports: [auth_module_1.AuthModule],
         controllers: [prompts_controller_1.PromptsController],
         providers: [prompts_service_1.PromptsService],
         exports: [prompts_service_1.PromptsService],

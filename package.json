@@ -32,9 +32,9 @@
     "clean:frontend": "cd frontend && rm -rf .next node_modules"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "concurrently": "^8.2.2",
     "eslint": "^8.45.0",
     "prettier": "^3.0.0",
     "typescript": "^5.0.0"
@@ -62,5 +62,9 @@
     "postgresql"
   ],
   "author": "Your Name",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@google/genai": "^1.15.0",
+    "@radix-ui/react-scroll-area": "^1.2.10"
+  }
 }

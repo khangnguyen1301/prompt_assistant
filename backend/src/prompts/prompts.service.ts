@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 export interface GeneratePromptDto {
   userInput: string;
@@ -28,8 +28,7 @@ export interface StructuredPrompt {
 
 @Injectable()
 export class PromptsService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
+  private ai: GoogleGenAI;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -40,15 +39,24 @@ export class PromptsService {
       throw new Error("GEMINI_API_KEY is required");
     }
 
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Use new @google/genai API structure
+    this.ai = new GoogleGenAI({ apiKey });
   }
 
-  async generateOptimizedPrompt(data: GeneratePromptDto, userId: string) {
+  async generateOptimizedPrompt(data: GeneratePromptDto, clerkId: string) {
     try {
       // Validate input
       if (!data.userInput?.trim()) {
         throw new BadRequestException("User input is required");
+      }
+
+      // Find user by clerkId to get database userId
+      const user = await this.prisma.user.findUnique({
+        where: { clerkId },
+      });
+
+      if (!user) {
+        throw new BadRequestException("User not found");
       }
 
       // Get conversation context if provided
@@ -64,7 +72,7 @@ export class PromptsService {
           },
         });
 
-        if (conversation && conversation.userId === userId) {
+        if (conversation && conversation.userId === user.id) {
           conversationContext = conversation.messages
             .reverse()
             .map((msg) => `${msg.role}: ${msg.content}`)
@@ -82,16 +90,18 @@ export class PromptsService {
         data.options
       );
 
-      // Call Gemini API
+      // Call Gemini API using new @google/genai structure
       const startTime = Date.now();
-      const result = await this.model.generateContent([
-        systemPrompt,
-        userPrompt,
-      ]);
+      const response = await this.ai.models.generateContent({
+        model: "gemini-2.5-pro",
+        contents: userPrompt,
+        config: {
+          systemInstruction: systemPrompt,
+        },
+      });
       const processingTime = Date.now() - startTime;
 
-      const response = await result.response;
-      const optimizedPromptText = response.text();
+      const optimizedPromptText = response.text;
 
       // Parse structured prompt
       const structuredPrompt = this.parseStructuredPrompt(optimizedPromptText);
@@ -99,7 +109,7 @@ export class PromptsService {
       // Save to database
       const savedPrompt = await this.prisma.prompt.create({
         data: {
-          userId,
+          userId: user.id,
           originalInput: data.userInput,
           structuredPrompt: structuredPrompt as any,
           metadata: {
@@ -118,7 +128,7 @@ export class PromptsService {
         metadata: {
           processingTime,
           tokensUsed: response.usageMetadata?.totalTokenCount || 0,
-          model: "gemini-pro",
+          model: "gemini-2.5-pro",
         },
       };
     } catch (error) {
@@ -129,12 +139,21 @@ export class PromptsService {
     }
   }
 
-  async getPromptHistory(userId: string, page = 1, limit = 20) {
+  async getPromptHistory(clerkId: string, page = 1, limit = 20) {
+    // Find user by clerkId to get database userId
+    const user = await this.prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
+
     const skip = (page - 1) * limit;
 
     const [prompts, total] = await Promise.all([
       this.prisma.prompt.findMany({
-        where: { userId },
+        where: { userId: user.id },
         orderBy: { createdAt: "desc" },
         skip,
         take: limit,
@@ -148,7 +167,7 @@ export class PromptsService {
         },
       }),
       this.prisma.prompt.count({
-        where: { userId },
+        where: { userId: user.id },
       }),
     ]);
 
