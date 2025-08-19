@@ -9,7 +9,7 @@ export declare class PromptsController {
         originalInput: string;
         metadata: {
             processingTime: number;
-            tokensUsed: any;
+            tokensUsed: number;
             model: string;
         };
     }>;

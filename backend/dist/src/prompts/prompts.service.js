@@ -13,7 +13,7 @@ exports.PromptsService = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../prisma/prisma.service");
-const generative_ai_1 = require("@google/generative-ai");
+const genai_1 = require("@google/genai");
 let PromptsService = class PromptsService {
     constructor(prisma, configService) {
         this.prisma = prisma;
@@ -22,13 +22,18 @@ let PromptsService = class PromptsService {
         if (!apiKey) {
             throw new Error("GEMINI_API_KEY is required");
         }
-        this.genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-        this.model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+        this.ai = new genai_1.GoogleGenAI({ apiKey });
     }
-    async generateOptimizedPrompt(data, userId) {
+    async generateOptimizedPrompt(data, clerkId) {
         try {
             if (!data.userInput?.trim()) {
                 throw new common_1.BadRequestException("User input is required");
+            }
+            const user = await this.prisma.user.findUnique({
+                where: { clerkId },
+            });
+            if (!user) {
+                throw new common_1.BadRequestException("User not found");
             }
             let conversationContext = "";
             if (data.conversationId) {
@@ -41,7 +46,7 @@ let PromptsService = class PromptsService {
                         },
                     },
                 });
-                if (conversation && conversation.userId === userId) {
+                if (conversation && conversation.userId === user.id) {
                     conversationContext = conversation.messages
                         .reverse()
                         .map((msg) => `${msg.role}: ${msg.content}`)
@@ -51,17 +56,19 @@ let PromptsService = class PromptsService {
             const systemPrompt = this.createSystemPrompt(data.options);
             const userPrompt = this.createUserPrompt(data.userInput, conversationContext, data.options);
             const startTime = Date.now();
-            const result = await this.model.generateContent([
-                systemPrompt,
-                userPrompt,
-            ]);
+            const response = await this.ai.models.generateContent({
+                model: "gemini-2.5-pro",
+                contents: userPrompt,
+                config: {
+                    systemInstruction: systemPrompt,
+                },
+            });
             const processingTime = Date.now() - startTime;
-            const response = await result.response;
-            const optimizedPromptText = response.text();
+            const optimizedPromptText = response.text;
             const structuredPrompt = this.parseStructuredPrompt(optimizedPromptText);
             const savedPrompt = await this.prisma.prompt.create({
                 data: {
-                    userId,
+                    userId: user.id,
                     originalInput: data.userInput,
                     structuredPrompt: structuredPrompt,
                     metadata: {
@@ -79,7 +86,7 @@ let PromptsService = class PromptsService {
                 metadata: {
                     processingTime,
                     tokensUsed: response.usageMetadata?.totalTokenCount || 0,
-                    model: "gemini-pro",
+                    model: "gemini-2.5-pro",
                 },
             };
         }
@@ -88,11 +95,17 @@ let PromptsService = class PromptsService {
             throw new common_1.InternalServerErrorException("Failed to generate optimized prompt");
         }
     }
-    async getPromptHistory(userId, page = 1, limit = 20) {
+    async getPromptHistory(clerkId, page = 1, limit = 20) {
+        const user = await this.prisma.user.findUnique({
+            where: { clerkId },
+        });
+        if (!user) {
+            throw new common_1.BadRequestException("User not found");
+        }
         const skip = (page - 1) * limit;
         const [prompts, total] = await Promise.all([
             this.prisma.prompt.findMany({
-                where: { userId },
+                where: { userId: user.id },
                 orderBy: { createdAt: "desc" },
                 skip,
                 take: limit,
@@ -106,7 +119,7 @@ let PromptsService = class PromptsService {
                 },
             }),
             this.prisma.prompt.count({
-                where: { userId },
+                where: { userId: user.id },
             }),
         ]);
         return {

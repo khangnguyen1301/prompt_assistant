@@ -20,20 +20,19 @@ export interface StructuredPrompt {
 export declare class PromptsService {
     private readonly prisma;
     private readonly configService;
-    private genAI;
-    private model;
+    private ai;
     constructor(prisma: PrismaService, configService: ConfigService);
-    generateOptimizedPrompt(data: GeneratePromptDto, userId: string): Promise<{
+    generateOptimizedPrompt(data: GeneratePromptDto, clerkId: string): Promise<{
         id: string;
         optimizedPrompt: StructuredPrompt;
         originalInput: string;
         metadata: {
             processingTime: number;
-            tokensUsed: any;
+            tokensUsed: number;
             model: string;
         };
     }>;
-    getPromptHistory(userId: string, page?: number, limit?: number): Promise<{
+    getPromptHistory(clerkId: string, page?: number, limit?: number): Promise<{
         prompts: ({
             message: {
                 id: string;

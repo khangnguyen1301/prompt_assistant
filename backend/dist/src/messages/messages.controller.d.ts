@@ -34,9 +34,6 @@ export declare class MessagesController {
         };
     }>;
     findOne(user: AuthUser, id: string): Promise<{
-        conversation: {
-            userId: string;
-        };
         prompts: {
             id: string;
             originalInput: string;
@@ -46,6 +43,9 @@ export declare class MessagesController {
             userId: string;
             messageId: string | null;
         }[];
+        conversation: {
+            userId: string;
+        };
     } & {
         id: string;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;

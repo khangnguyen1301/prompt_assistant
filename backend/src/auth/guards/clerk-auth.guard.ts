@@ -5,16 +5,45 @@ import {
   UnauthorizedException,
   Logger,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { AuthService } from "../auth.service";
 
 @Injectable()
 export class ClerkAuthGuard implements CanActivate {
   private readonly logger = new Logger(ClerkAuthGuard.name);
 
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService
+  ) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
     try {
-      // Get token from Authorization header
+      // In development mode, use simplified authentication
+      const nodeEnv = this.configService.get<string>("NODE_ENV");
+      if (nodeEnv === "development") {
+        this.logger.debug("Development mode: using simplified authentication");
+
+        // Check if Authorization header exists
+        const authHeader = request.headers.authorization;
+        let token = "dev-token-123";
+
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+          token = authHeader.substring(7);
+        }
+
+        // Use AuthService to handle user authentication and DB storage
+        const user = await this.authService.verifyClerkToken(token);
+
+        // Add user info to request
+        request.user = user;
+
+        return true;
+      }
+
+      // Production authentication
       const authHeader = request.headers.authorization;
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
         throw new UnauthorizedException("No valid authorization header found");
@@ -22,21 +51,15 @@ export class ClerkAuthGuard implements CanActivate {
 
       const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
-      // For now, we'll do a basic validation
-      // In production, you would verify the JWT token with Clerk
       if (!token || token.length < 10) {
         throw new UnauthorizedException("Invalid token format");
       }
 
-      // Extract user ID from token (simplified for demo)
-      // In production, decode JWT and verify signature
-      const mockUserId = "user_demo123"; // This would come from JWT payload
+      // Use AuthService to verify token and get user from DB
+      const user = await this.authService.verifyClerkToken(token);
 
       // Add user info to request
-      request.user = {
-        id: mockUserId,
-        clerkId: mockUserId,
-      };
+      request.user = user;
 
       return true;
     } catch (error) {
