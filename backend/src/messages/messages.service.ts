@@ -12,7 +12,7 @@ export enum MessageRole {
 
 export interface CreateMessageDto {
   conversationId: string;
-  role: MessageRole;
+  role: string; // Accept string and convert to enum
   content: string;
   metadata?: any;
 }
@@ -39,7 +39,7 @@ export class MessagesService {
     const message = await this.prisma.message.create({
       data: {
         conversationId: data.conversationId,
-        role: data.role as any, // Cast to Prisma enum
+        role: data.role.toUpperCase() as any, // Convert to uppercase for Prisma enum
         content: data.content,
         metadata: data.metadata,
       },

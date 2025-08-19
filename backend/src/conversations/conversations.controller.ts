@@ -47,7 +47,7 @@ export class ConversationsController {
   ) {
     return this.conversationsService.create({
       ...createConversationDto,
-      userId: user.clerkId,
+      userId: user.id, // Use internal UUID, not clerkId
     });
   }
 
@@ -63,7 +63,7 @@ export class ConversationsController {
     @Query("limit") limit = "20"
   ) {
     return this.conversationsService.findAllByUser(
-      user.clerkId,
+      user.id, // Use internal UUID
       parseInt(page),
       parseInt(limit)
     );
@@ -77,7 +77,7 @@ export class ConversationsController {
   })
   @ApiResponse({ status: 404, description: "Conversation not found" })
   async findOne(@CurrentUser() user: AuthUser, @Param("id") id: string) {
-    return this.conversationsService.findOne(id, user.clerkId);
+    return this.conversationsService.findOne(id, user.id); // Use internal UUID
   }
 
   @Put(":id")
@@ -93,7 +93,7 @@ export class ConversationsController {
   ) {
     return this.conversationsService.update(
       id,
-      user.clerkId,
+      user.id, // Use internal UUID
       updateConversationDto
     );
   }
@@ -106,6 +106,6 @@ export class ConversationsController {
     description: "Conversation deleted successfully",
   })
   async delete(@CurrentUser() user: AuthUser, @Param("id") id: string) {
-    return this.conversationsService.delete(id, user.clerkId);
+    return this.conversationsService.delete(id, user.id); // Use internal UUID
   }
 }

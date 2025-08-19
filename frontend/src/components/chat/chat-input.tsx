@@ -83,7 +83,7 @@ export function ChatInput({
 
       {/* Input form */}
       <form onSubmit={handleSubmit} className="p-4">
-        <div className="relative flex items-end gap-3">
+        <div className="relative flex items-center gap-3">
           <div className="flex-1 relative">
             <textarea
               ref={textareaRef}
@@ -93,7 +93,7 @@ export function ChatInput({
               placeholder="Describe the prompt you want to optimize..."
               disabled={disabled || isLoading}
               rows={1}
-              className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed text-black"
               style={{ minHeight: "52px", maxHeight: "200px" }}
             />
 

@@ -5,7 +5,7 @@ export interface GeneratePromptDto {
     conversationId?: string;
     options?: {
         language?: "vi" | "en";
-        style?: "formal" | "casual" | "technical";
+        style?: "formal" | "casual" | "technical" | "professional";
         includeExamples?: boolean;
     };
 }

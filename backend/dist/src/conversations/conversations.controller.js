@@ -25,20 +25,20 @@ let ConversationsController = class ConversationsController {
     async create(user, createConversationDto) {
         return this.conversationsService.create({
             ...createConversationDto,
-            userId: user.clerkId,
+            userId: user.id,
         });
     }
     async findAll(user, page = "1", limit = "20") {
-        return this.conversationsService.findAllByUser(user.clerkId, parseInt(page), parseInt(limit));
+        return this.conversationsService.findAllByUser(user.id, parseInt(page), parseInt(limit));
     }
     async findOne(user, id) {
-        return this.conversationsService.findOne(id, user.clerkId);
+        return this.conversationsService.findOne(id, user.id);
     }
     async update(user, id, updateConversationDto) {
-        return this.conversationsService.update(id, user.clerkId, updateConversationDto);
+        return this.conversationsService.update(id, user.id, updateConversationDto);
     }
     async delete(user, id) {
-        return this.conversationsService.delete(id, user.clerkId);
+        return this.conversationsService.delete(id, user.id);
     }
 };
 exports.ConversationsController = ConversationsController;

@@ -23,10 +23,10 @@ let PromptsController = class PromptsController {
         this.promptsService = promptsService;
     }
     async generatePrompt(user, generatePromptDto) {
-        return this.promptsService.generateOptimizedPrompt(generatePromptDto, user.clerkId);
+        return this.promptsService.generateOptimizedPrompt(generatePromptDto, user.id);
     }
     async getHistory(user, page = "1", limit = "20") {
-        return this.promptsService.getPromptHistory(user.clerkId, parseInt(page), parseInt(limit));
+        return this.promptsService.getPromptHistory(user.id, parseInt(page), parseInt(limit));
     }
 };
 exports.PromptsController = PromptsController;

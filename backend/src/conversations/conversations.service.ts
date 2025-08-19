@@ -19,21 +19,31 @@ export class ConversationsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateConversationDto) {
-    return this.prisma.conversation.create({
-      data: {
-        userId: data.userId,
-        title: data.title,
-      },
-      include: {
-        messages: {
-          orderBy: { createdAt: "asc" },
-          take: 10,
+    console.log("🚀 Creating conversation with data:", data);
+
+    try {
+      const result = await this.prisma.conversation.create({
+        data: {
+          userId: data.userId,
+          title: data.title,
         },
-        _count: {
-          select: { messages: true },
+        include: {
+          messages: {
+            orderBy: { createdAt: "asc" },
+            take: 10,
+          },
+          _count: {
+            select: { messages: true },
+          },
         },
-      },
-    });
+      });
+
+      console.log("✅ Conversation created successfully:", result);
+      return result;
+    } catch (error) {
+      console.error("❌ Failed to create conversation:", error);
+      throw error;
+    }
   }
 
   async findAllByUser(userId: string, page = 1, limit = 20) {

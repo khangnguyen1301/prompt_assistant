@@ -67,7 +67,7 @@ export class PromptsController {
   ) {
     return this.promptsService.generateOptimizedPrompt(
       generatePromptDto,
-      user.clerkId
+      user.id // Use internal UUID
     );
   }
 
@@ -80,7 +80,7 @@ export class PromptsController {
     @Query("limit") limit = "20"
   ) {
     return this.promptsService.getPromptHistory(
-      user.clerkId,
+      user.id, // Use internal UUID
       parseInt(page),
       parseInt(limit)
     );

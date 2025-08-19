@@ -44,8 +44,21 @@ export class ClerkAuthGuard implements CanActivate {
       }
 
       // Production authentication
-      const authHeader = request.headers.authorization;
+      console.log("🚀 ~ canActivate ~ request.headers:", request.headers);
+
+      // Check both lowercase and uppercase authorization headers
+      const authHeader =
+        request.headers.authorization || request.headers.Authorization;
+      this.logger.debug(
+        `Production mode - Auth header: ${authHeader ? "present" : "missing"}`
+      );
+
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        this.logger.error(`Invalid auth header: ${authHeader}`);
+        this.logger.error(
+          `All headers:`,
+          JSON.stringify(request.headers, null, 2)
+        );
         throw new UnauthorizedException("No valid authorization header found");
       }
 

@@ -23,16 +23,16 @@ let MessagesController = class MessagesController {
         this.messagesService = messagesService;
     }
     async create(user, createMessageDto) {
-        return this.messagesService.create(createMessageDto, user.clerkId);
+        return this.messagesService.create(createMessageDto, user.id);
     }
     async findByConversation(user, conversationId, page = "1", limit = "50") {
-        return this.messagesService.findByConversation(conversationId, user.clerkId, parseInt(page), parseInt(limit));
+        return this.messagesService.findByConversation(conversationId, user.id, parseInt(page), parseInt(limit));
     }
     async findOne(user, id) {
-        return this.messagesService.findOne(id, user.clerkId);
+        return this.messagesService.findOne(id, user.id);
     }
     async delete(user, id) {
-        return this.messagesService.delete(id, user.clerkId);
+        return this.messagesService.delete(id, user.id);
     }
 };
 exports.MessagesController = MessagesController;
