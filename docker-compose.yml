@@ -1,0 +1,89 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: prompt_assistant_db
+    environment:
+      POSTGRES_DB: prompt_assistant
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - prompt_assistant_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: prompt_assistant_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - prompt_assistant_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prompt_assistant_backend
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/prompt_assistant
+      - REDIS_URL=redis://redis:6379
+      - CLERK_SECRET_KEY=your-clerk-secret-key
+      - CLERK_WEBHOOK_SECRET=your-clerk-webhook-secret
+      - GEMINI_API_KEY=your-gemini-api-key
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - prompt_assistant_network
+    command: npm run start:dev
+
+  # Frontend Web App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: prompt_assistant_frontend
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your-clerk-publishable-key
+      - NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+      - NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+      - NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/chat
+      - NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/chat
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - prompt_assistant_network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  prompt_assistant_network:
+    driver: bridge

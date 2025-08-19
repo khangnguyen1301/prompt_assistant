@@ -1,0 +1,42 @@
+{"context":"RoutesResolver","level":"info","message":"AuthController {/api/auth}:"}
+{"context":"RoutesResolver","level":"info","message":"ConversationsController {/api/conversations}:"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/conversations, POST} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/conversations, GET} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/conversations/:id, GET} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/conversations/:id, PUT} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/conversations/:id, DELETE} route"}
+{"context":"RoutesResolver","level":"info","message":"MessagesController {/api/messages}:"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/messages, POST} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/messages/conversation/:conversationId, GET} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/messages/:id, GET} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/messages/:id, DELETE} route"}
+{"context":"RoutesResolver","level":"info","message":"PromptsController {/api/prompts}:"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/prompts/generate, POST} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/prompts/history, GET} route"}
+{"context":"RoutesResolver","level":"info","message":"WebhooksController {/api/webhooks}:"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/webhooks/clerk, POST} route"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/health}:"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/health, GET} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/health/detailed, GET} route"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started"}
+{"context":"RoutesResolver","level":"info","message":"AuthController {/api/auth}:"}
+{"context":"RoutesResolver","level":"info","message":"ConversationsController {/api/conversations}:"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/conversations, POST} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/conversations, GET} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/conversations/:id, GET} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/conversations/:id, PUT} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/conversations/:id, DELETE} route"}
+{"context":"RoutesResolver","level":"info","message":"MessagesController {/api/messages}:"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/messages, POST} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/messages/conversation/:conversationId, GET} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/messages/:id, GET} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/messages/:id, DELETE} route"}
+{"context":"RoutesResolver","level":"info","message":"PromptsController {/api/prompts}:"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/prompts/generate, POST} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/prompts/history, GET} route"}
+{"context":"RoutesResolver","level":"info","message":"WebhooksController {/api/webhooks}:"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/webhooks/clerk, POST} route"}
+{"context":"RoutesResolver","level":"info","message":"HealthController {/api/health}:"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/health, GET} route"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/api/health/detailed, GET} route"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started"}
