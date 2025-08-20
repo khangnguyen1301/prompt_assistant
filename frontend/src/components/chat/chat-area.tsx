@@ -11,12 +11,14 @@ interface ChatAreaProps {
   messages: Message[];
   isLoading: boolean;
   onSendMessage: (content: string) => void;
+  isNewConversation?: boolean; // Add this prop
 }
 
 export function ChatArea({
   messages,
   isLoading,
   onSendMessage,
+  isNewConversation = false,
 }: ChatAreaProps) {
   console.log("🚀 ~ ChatArea ~ messages:", messages);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -100,7 +102,11 @@ export function ChatArea({
       </div>
 
       {/* Chat Input */}
-      <ChatInput onSendMessage={onSendMessage} isLoading={isLoading} />
+      <ChatInput 
+        onSendMessage={onSendMessage} 
+        isLoading={isLoading}
+        isNewConversation={isNewConversation}
+      />
     </div>
   );
 }

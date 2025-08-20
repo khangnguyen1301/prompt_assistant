@@ -59,24 +59,36 @@ export class PromptsService {
         throw new BadRequestException("User not found");
       }
 
-      // Get conversation context if provided
-      let conversationContext = "";
+      // Get conversation context if provided - smarter context handling
+      let lastAssistantMessage = "";
+      let isModificationRequest = false;
+
       if (data.conversationId) {
         const conversation = await this.prisma.conversation.findUnique({
           where: { id: data.conversationId },
           include: {
             messages: {
               orderBy: { createdAt: "desc" },
-              take: 5, // Last 5 messages for context
+              take: 2, // Only last 2 messages (current user + last assistant)
             },
           },
         });
 
-        if (conversation && conversation.userId === user.id) {
-          conversationContext = conversation.messages
-            .reverse()
-            .map((msg) => `${msg.role}: ${msg.content}`)
-            .join("\n");
+        if (
+          conversation &&
+          conversation.userId === user.id &&
+          conversation.messages.length > 0
+        ) {
+          // Get the last assistant message (should be the most recent prompt)
+          const lastAssistant = conversation.messages.find(
+            (msg) => msg.role === "ASSISTANT"
+          );
+          if (lastAssistant) {
+            lastAssistantMessage = lastAssistant.content;
+
+            // Detect if this is a modification request
+            isModificationRequest = this.isModificationRequest(data.userInput);
+          }
         }
       }
 
@@ -86,12 +98,21 @@ export class PromptsService {
       // Create user prompt with context
       const userPrompt = this.createUserPrompt(
         data.userInput,
-        conversationContext,
+        lastAssistantMessage,
+        isModificationRequest,
         data.options
       );
 
       // Call Gemini API using new @google/genai structure
       const startTime = Date.now();
+      console.log(
+        "🚀 ~ PromptsService ~ generateOptimizedPrompt ~ userPrompt:",
+        userPrompt
+      );
+      console.log(
+        "🚀 ~ PromptsService ~ generateOptimizedPrompt ~ systemPrompt:",
+        systemPrompt
+      );
       const response = await this.ai.models.generateContent({
         model: "gemini-2.5-pro",
         contents: userPrompt,
@@ -99,9 +120,17 @@ export class PromptsService {
           systemInstruction: systemPrompt,
         },
       });
+      console.log(
+        "🚀 ~ PromptsService ~ generateOptimizedPrompt ~ response:",
+        response
+      );
       const processingTime = Date.now() - startTime;
 
       const optimizedPromptText = response.text;
+      console.log(
+        "🚀 ~ PromptsService ~ generateOptimizedPrompt ~ optimizedPromptText:",
+        optimizedPromptText
+      );
 
       // Parse structured prompt
       const structuredPrompt = this.parseStructuredPrompt(optimizedPromptText);
@@ -186,9 +215,9 @@ export class PromptsService {
     const language = options?.language || "vi";
 
     if (language === "vi") {
-      return `Bạn là một chuyên gia Prompt Engineering. Nhiệm vụ của bạn là tối ưu hóa các yêu cầu thô thành prompt có cấu trúc chuyên nghiệp.
+      return `Bạn là một chuyên gia Prompt Engineering. Nhiệm vụ của bạn là tối ưu hóa các yêu cầu thô thành prompt có cấu trúc chuyên nghiệp hoặc chỉnh sửa prompt hiện có.
 
-QUAN TRỌNG: Luôn trả về prompt theo định dạng sau:
+QUAN TRỌNG: Luôn trả về prompt theo định dạng chính xác sau (bao gồm emoji):
 
 🎯 Goal: [Mục tiêu rõ ràng, cụ thể]
 
@@ -203,15 +232,21 @@ QUAN TRỌNG: Luôn trả về prompt theo định dạng sau:
 
 ⚡ Notes: [Lưu ý quan trọng, context bổ sung]
 
+QUY TẮC:
+- Luôn giữ nguyên định dạng với emoji chính xác
+- Nếu là yêu cầu chỉnh sửa, hãy kế thừa nội dung tốt từ prompt cũ
+- Chỉ thay đổi những phần được yêu cầu chỉnh sửa
+- Đảm bảo prompt cuối cùng nhất quán, logic và thực thi được
+
 Hãy tối ưu prompt để:
 - Rõ ràng, không nhập nhằng
 - Tiết kiệm token
 - Dễ hiểu và thực hiện
 - Có thể đo lường kết quả`;
     } else {
-      return `You are a Prompt Engineering expert. Your task is to optimize raw requests into professionally structured prompts.
+      return `You are a Prompt Engineering expert. Your task is to optimize raw requests into professionally structured prompts or modify existing prompts.
 
-IMPORTANT: Always return prompts in this exact format:
+IMPORTANT: Always return prompts in this exact format (including emojis):
 
 🎯 Goal: [Clear, specific objective]
 
@@ -226,6 +261,12 @@ IMPORTANT: Always return prompts in this exact format:
 
 ⚡ Notes: [Important notes, additional context]
 
+RULES:
+- Always maintain exact format with correct emojis
+- If modifying existing prompt, inherit good content from previous version
+- Only change parts that are requested to be modified
+- Ensure final prompt is consistent, logical and executable
+
 Optimize the prompt to be:
 - Clear and unambiguous
 - Token-efficient
@@ -236,21 +277,26 @@ Optimize the prompt to be:
 
   private createUserPrompt(
     userInput: string,
-    context: string,
+    lastAssistantMessage: string,
+    isModificationRequest: boolean,
     options?: any
   ): string {
     const language = options?.language || "vi";
 
-    let prompt =
-      language === "vi"
-        ? `Tối ưu hóa yêu cầu sau thành prompt có cấu trúc:\n\n"${userInput}"`
-        : `Optimize the following request into a structured prompt:\n\n"${userInput}"`;
+    let prompt = "";
 
-    if (context) {
-      prompt +=
+    if (isModificationRequest && lastAssistantMessage) {
+      // This is a modification request, provide context for refinement
+      prompt =
         language === "vi"
-          ? `\n\nBối cảnh hội thoại trước:\n${context}`
-          : `\n\nPrevious conversation context:\n${context}`;
+          ? `Dựa trên prompt đã tối ưu trước đó, hãy chỉnh sửa theo yêu cầu mới.\n\nPrompt trước đó:\n${lastAssistantMessage}\n\nYêu cầu chỉnh sửa: "${userInput}"\n\nHãy trả về prompt đã được chỉnh sửa theo định dạng chuẩn.`
+          : `Based on the previously optimized prompt, please modify it according to the new request.\n\nPrevious prompt:\n${lastAssistantMessage}\n\nModification request: "${userInput}"\n\nReturn the modified prompt in standard format.`;
+    } else {
+      // This is a new prompt optimization request
+      prompt =
+        language === "vi"
+          ? `Tối ưu hóa yêu cầu sau thành prompt có cấu trúc:\n\n"${userInput}"`
+          : `Optimize the following request into a structured prompt:\n\n"${userInput}"`;
     }
 
     if (options?.style) {
@@ -263,7 +309,57 @@ Optimize the prompt to be:
     return prompt;
   }
 
+  private isModificationRequest(userInput: string): boolean {
+    const modificationKeywords = [
+      // Vietnamese keywords
+      "chỉnh sửa",
+      "sửa",
+      "thay đổi",
+      "điều chỉnh",
+      "cập nhật",
+      "bổ sung",
+      "thêm",
+      "bớt",
+      "rút gọn",
+      "mở rộng",
+      "làm ngắn",
+      "làm dài",
+      "chi tiết hơn",
+      "đơn giản hơn",
+      "thêm vào",
+      "bỏ đi",
+      "thay thế",
+      "cải thiện",
+      "tối ưu",
+      // English keywords
+      "modify",
+      "edit",
+      "change",
+      "update",
+      "add",
+      "remove",
+      "expand",
+      "shorten",
+      "improve",
+      "refine",
+      "adjust",
+      "revise",
+      "enhance",
+      "simplify",
+      "detail",
+      "extend",
+      "reduce",
+      "replace",
+    ];
+
+    const input = userInput.toLowerCase();
+    return modificationKeywords.some((keyword) =>
+      input.includes(keyword.toLowerCase())
+    );
+  }
+
   private parseStructuredPrompt(text: string): StructuredPrompt {
+    console.log("🚀 ~ PromptsService ~ parseStructuredPrompt ~ text:", text);
     try {
       const sections = {
         goal: "",

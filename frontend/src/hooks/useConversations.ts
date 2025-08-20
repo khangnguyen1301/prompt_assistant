@@ -73,7 +73,8 @@ export function useConversations() {
       }
 
       const data = await response.json();
-      const newConversation = data.conversation;
+      console.log("🚀 ~ createConversation ~ data:", data)
+      const newConversation = data;
 
       setConversations((prev) => [newConversation, ...prev]);
       return newConversation;
@@ -111,7 +112,7 @@ export function useConversations() {
       }
 
       const data = await response.json();
-      const updatedConversation = data.conversation;
+      const updatedConversation = data;
 
       setConversations((prev) =>
         prev
