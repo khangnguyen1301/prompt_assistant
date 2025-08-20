@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { Plus, MessageSquare, Settings, History } from "lucide-react";
 import { Conversation } from "./chat-layout";
 import { ConversationMenu } from "./conversation-menu";
@@ -27,6 +27,16 @@ export function Sidebar({
   loading = false,
 }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user } = useUser();
+
+  // Function to handle user info click (same as UserButton click behavior)
+  const handleUserInfoClick = () => {
+    // This will trigger the same action as clicking UserButton
+    const userButton = document.querySelector(
+      ".cl-userButtonTrigger"
+    ) as HTMLElement;
+    userButton?.click();
+  };
 
   return (
     <div
@@ -161,24 +171,26 @@ export function Sidebar({
               isCollapsed && "justify-center"
             )}
           >
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-8 h-8",
-                },
-              }}
-              afterSignOutUrl="/sign-in"
-            />
-            {!isCollapsed && (
-              <div className="flex-1">
-                <div className="text-sm font-medium">Your Account</div>
-              </div>
-            )}
-            {!isCollapsed && (
-              <button className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
-                <Settings size={16} />
-              </button>
-            )}
+            <div className="flex items-center justify-start gap-2 flex-1 cursor-pointer hover:bg-gray-700 rounded-lg p-2 transition-colors">
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8",
+                  },
+                }}
+                afterSignOutUrl="/sign-in"
+              />
+              {!isCollapsed && (
+                <div onClick={!isCollapsed ? handleUserInfoClick : undefined}>
+                  <div className="text-sm font-medium truncate">
+                    {user?.fullName || user?.firstName || "User"}
+                  </div>
+                  <div className="text-xs text-gray-400 truncate">
+                    {user?.emailAddresses?.[0]?.emailAddress || "No email"}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

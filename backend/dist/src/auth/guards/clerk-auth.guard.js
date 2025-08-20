@@ -35,7 +35,6 @@ let ClerkAuthGuard = ClerkAuthGuard_1 = class ClerkAuthGuard {
                 request.user = user;
                 return true;
             }
-            console.log("🚀 ~ canActivate ~ request.headers:", request.headers);
             const authHeader = request.headers.authorization || request.headers.Authorization;
             this.logger.debug(`Production mode - Auth header: ${authHeader ? "present" : "missing"}`);
             if (!authHeader || !authHeader.startsWith("Bearer ")) {
