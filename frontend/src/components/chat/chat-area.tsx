@@ -20,7 +20,6 @@ export function ChatArea({
   onSendMessage,
   isNewConversation = false,
 }: ChatAreaProps) {
-  console.log("🚀 ~ ChatArea ~ messages:", messages);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -102,8 +101,8 @@ export function ChatArea({
       </div>
 
       {/* Chat Input */}
-      <ChatInput 
-        onSendMessage={onSendMessage} 
+      <ChatInput
+        onSendMessage={onSendMessage}
         isLoading={isLoading}
         isNewConversation={isNewConversation}
       />

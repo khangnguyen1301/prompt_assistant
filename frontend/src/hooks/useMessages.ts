@@ -100,9 +100,6 @@ export function useMessages(conversationId: string | null) {
 
       const data = await response.json();
       const newMessage = data;
-      console.log("🚀 ~ sendMessage ~ newMessage:", newMessage);
-
-      // setMessages((prev) => [...prev, newMessage]);
       return newMessage;
     } catch (err) {
       console.error("Error sending message:", err);

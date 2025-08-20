@@ -26,7 +26,6 @@ export function Sidebar({
   onDeleteConversation,
   loading = false,
 }: SidebarProps) {
-  console.log("🚀 ~ Sidebar ~ conversations:", conversations);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -68,16 +67,21 @@ export function Sidebar({
       </div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto mb-20"> {/* Change from overflow-y-scroll to overflow-y-auto */}
-        <div className="px-4 space-y-1"> {/* Add space-y-1 here and remove from space-y-2 below */}
+      <div className="flex-1 overflow-y-auto mb-20">
+        {" "}
+        {/* Change from overflow-y-scroll to overflow-y-auto */}
+        <div className="px-4 space-y-1">
+          {" "}
+          {/* Add space-y-1 here and remove from space-y-2 below */}
           {!isCollapsed && (
             <h2 className="text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
               <History size={16} />
               Recent Conversations
             </h2>
           )}
-
-          <div className="space-y-1"> {/* Change from space-y-2 to space-y-1 for tighter spacing */}
+          <div className="space-y-1">
+            {" "}
+            {/* Change from space-y-2 to space-y-1 for tighter spacing */}
             {loading ? (
               <div className="animate-pulse space-y-2">
                 {[1, 2, 3].map((i) => (
@@ -116,18 +120,24 @@ export function Sidebar({
                     {isCollapsed ? (
                       <MessageSquare size={20} />
                     ) : (
-                      <div className="pr-8 min-w-0"> {/* Add min-w-0 for proper truncation */}
+                      <div className="pr-8 min-w-0">
+                        {" "}
+                        {/* Add min-w-0 for proper truncation */}
                         <div className="font-medium truncate">
                           {conversation?.title}
                         </div>
-                        <div className="text-xs text-gray-400 mt-1 truncate"> {/* Add truncate here too */}
+                        <div className="text-xs text-gray-400 mt-1 truncate">
+                          {" "}
+                          {/* Add truncate here too */}
                           {conversation?.messageCount} messages •{" "}
-                          {new Date(conversation?.updatedAt).toLocaleDateString()}
+                          {new Date(
+                            conversation?.updatedAt
+                          ).toLocaleDateString()}
                         </div>
                       </div>
                     )}
                   </button>
-                  
+
                   {!isCollapsed && (
                     <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                       <ConversationMenu
@@ -143,7 +153,6 @@ export function Sidebar({
             )}
           </div>
         </div>
-
         {/* Footer */}
         <div className="w-full absolute bottom-0 left-0 p-4 border-t border-gray-700 bg-gray-800">
           <div

@@ -43,9 +43,6 @@ export class ClerkAuthGuard implements CanActivate {
         return true;
       }
 
-      // Production authentication
-      console.log("🚀 ~ canActivate ~ request.headers:", request.headers);
-
       // Check both lowercase and uppercase authorization headers
       const authHeader =
         request.headers.authorization || request.headers.Authorization;

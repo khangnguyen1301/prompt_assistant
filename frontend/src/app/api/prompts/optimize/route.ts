@@ -47,7 +47,6 @@ export async function POST(request: NextRequest) {
       userId = clerkUserId;
       // Get the token for backend authentication
       authToken = (await getToken()) || "";
-      console.log("🚀 ~ POST ~ authToken:", authToken);
     }
 
     const startTime = Date.now();

@@ -112,17 +112,12 @@ export function ChatLayout() {
 
     try {
       let conversationId = currentConversationId;
-      console.log("🚀 ~ handleSendMessage ~ conversationId:", conversationId);
 
       // Create new conversation if none exists
       if (!conversationId) {
-        console.log("Creating new conversation...");
-
         const newConversation = await createConversation(
           content.slice(0, 50) + (content.length > 50 ? "..." : "")
         );
-
-        console.log("New conversation created:", newConversation);
 
         if (!newConversation) {
           throw new Error("Failed to create conversation");
@@ -130,7 +125,6 @@ export function ChatLayout() {
 
         conversationId = newConversation.id;
         setCurrentConversationId(conversationId);
-        console.log("Set current conversation ID to:", conversationId);
 
         // Give a moment for the conversation to be set
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -213,7 +207,6 @@ export function ChatLayout() {
       setIsLoading(false);
     }
   };
-  console.log(messages);
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar

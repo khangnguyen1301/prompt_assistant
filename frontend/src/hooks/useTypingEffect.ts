@@ -32,11 +32,9 @@ export function useTypingEffect(
     setDisplayedText("");
 
     let typingInterval: NodeJS.Timeout;
-    console.log("called");
 
     let i = 0;
     typingInterval = setInterval(() => {
-      console.log("called");
       setDisplayedText((prev) => prev + text[i]);
       i++;
       if (i >= text.length) {

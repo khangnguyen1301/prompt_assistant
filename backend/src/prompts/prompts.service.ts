@@ -105,14 +105,6 @@ export class PromptsService {
 
       // Call Gemini API using new @google/genai structure
       const startTime = Date.now();
-      console.log(
-        "🚀 ~ PromptsService ~ generateOptimizedPrompt ~ userPrompt:",
-        userPrompt
-      );
-      console.log(
-        "🚀 ~ PromptsService ~ generateOptimizedPrompt ~ systemPrompt:",
-        systemPrompt
-      );
       const response = await this.ai.models.generateContent({
         model: "gemini-2.5-pro",
         contents: userPrompt,
@@ -120,17 +112,10 @@ export class PromptsService {
           systemInstruction: systemPrompt,
         },
       });
-      console.log(
-        "🚀 ~ PromptsService ~ generateOptimizedPrompt ~ response:",
-        response
-      );
+
       const processingTime = Date.now() - startTime;
 
       const optimizedPromptText = response.text;
-      console.log(
-        "🚀 ~ PromptsService ~ generateOptimizedPrompt ~ optimizedPromptText:",
-        optimizedPromptText
-      );
 
       // Parse structured prompt
       const structuredPrompt = this.parseStructuredPrompt(optimizedPromptText);
@@ -359,7 +344,6 @@ Optimize the prompt to be:
   }
 
   private parseStructuredPrompt(text: string): StructuredPrompt {
-    console.log("🚀 ~ PromptsService ~ parseStructuredPrompt ~ text:", text);
     try {
       const sections = {
         goal: "",
