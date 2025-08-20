@@ -1,20 +1,23 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Loader2, Zap, Sparkles } from "lucide-react";
+import { Send, Loader2, Zap, Sparkles, X } from "lucide-react";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
   disabled?: boolean;
+  isNewConversation?: boolean; // Add this prop
 }
 
 export function ChatInput({
   onSendMessage,
   isLoading = false,
   disabled = false,
+  isNewConversation = false,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
+  const [showExamples, setShowExamples] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea
@@ -25,6 +28,13 @@ export function ChatInput({
       textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
     }
   }, [message]);
+
+  // Reset examples when starting a new conversation
+  useEffect(() => {
+    if (isNewConversation) {
+      setShowExamples(true);
+    }
+  }, [isNewConversation]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,14 +65,23 @@ export function ChatInput({
 
   return (
     <div className="border-t border-gray-200 bg-white">
-      {/* Example prompts (show when input is empty) */}
-      {!message && (
+      {/* Example prompts (show when input is empty, it's a new conversation, and examples are not closed) */}
+      {!message && isNewConversation && showExamples && (
         <div className="p-4 border-b border-gray-100">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4 text-yellow-500" />
-            <span className="text-sm font-medium text-gray-700">
-              Try these examples:
-            </span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-yellow-500" />
+              <span className="text-sm font-medium text-gray-700">
+                Try these examples:
+              </span>
+            </div>
+            <button
+              onClick={() => setShowExamples(false)}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              title="Close examples"
+            >
+              <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+            </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {examplePrompts.map((example, index) => (

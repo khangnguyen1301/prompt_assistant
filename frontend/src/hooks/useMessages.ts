@@ -3,10 +3,11 @@ import { useAuth } from "@clerk/nextjs";
 
 export interface Message {
   id: string;
-  role: "user" | "assistant";
+  role: "USER" | "ASSISTANT";
   content: string;
-  timestamp: string;
+  createdAt: string;
   conversationId: string;
+  isNewMessage?: boolean; // Flag để kiểm tra tin nhắn mới
   metadata?: {
     optimizedPrompt?: {
       goal: string;
@@ -29,7 +30,6 @@ export function useMessages(conversationId: string | null) {
 
   const fetchMessages = async () => {
     if (!isLoaded || !userId || !conversationId) {
-      setMessages([]);
       return;
     }
 
@@ -53,7 +53,7 @@ export function useMessages(conversationId: string | null) {
       }
 
       const data = await response.json();
-      setMessages(data.messages || []);
+      setMessages((prev) => [...prev, ...(data.messages || [])]);
     } catch (err) {
       console.error("Error fetching messages:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -69,7 +69,7 @@ export function useMessages(conversationId: string | null) {
   const sendMessage = async (
     content: string,
     currentConversationId?: string,
-    role: "user" | "assistant" = "user",
+    role: "USER" | "ASSISTANT" = "USER",
     metadata?: any
   ) => {
     if (!isLoaded || !userId) return null;
@@ -99,10 +99,10 @@ export function useMessages(conversationId: string | null) {
       }
 
       const data = await response.json();
-      const newMessage = data.message;
+      const newMessage = data;
       console.log("🚀 ~ sendMessage ~ newMessage:", newMessage);
 
-      setMessages((prev) => [...prev, newMessage]);
+      // setMessages((prev) => [...prev, newMessage]);
       return newMessage;
     } catch (err) {
       console.error("Error sending message:", err);
@@ -113,6 +113,12 @@ export function useMessages(conversationId: string | null) {
 
   const addMessage = (message: Message) => {
     setMessages((prev) => [...prev, message]);
+  };
+
+  const updateMessage = (messageId: string, updates: Partial<Message>) => {
+    setMessages((prev) =>
+      prev.map((msg) => (msg.id === messageId ? { ...msg, ...updates } : msg))
+    );
   };
 
   const clearMessages = () => {
@@ -126,6 +132,7 @@ export function useMessages(conversationId: string | null) {
     fetchMessages,
     sendMessage,
     addMessage,
+    updateMessage,
     clearMessages,
   };
 }

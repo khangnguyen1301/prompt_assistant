@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { Sidebar } from "./sidebar";
@@ -19,10 +19,11 @@ export interface Conversation {
 
 export interface Message {
   id: string;
-  role: "user" | "assistant";
+  role: "USER" | "ASSISTANT";
   content: string;
-  timestamp: string;
+  createdAt: string;
   conversationId: string; // Make it required to match useMessages
+  isNewMessage?: boolean; // Flag để kiểm tra tin nhắn mới
   metadata?: {
     optimizedPrompt?: {
       goal: string;
@@ -52,6 +53,7 @@ export function ChatLayout() {
     loading: conversationsLoading,
     createConversation,
     updateConversation,
+    deleteConversation,
   } = useConversations();
 
   const {
@@ -90,6 +92,19 @@ export function ChatLayout() {
     setCurrentConversationId(conversationId);
   };
 
+  const handleRenameConversation = async (id: string, newTitle: string) => {
+    await updateConversation(id, { title: newTitle });
+  };
+
+  const handleDeleteConversation = async (id: string) => {
+    const success = await deleteConversation(id);
+    if (success && currentConversationId === id) {
+      // If we deleted the current conversation, reset to new conversation
+      setCurrentConversationId(null);
+      clearMessages();
+    }
+  };
+
   const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
@@ -97,12 +112,17 @@ export function ChatLayout() {
 
     try {
       let conversationId = currentConversationId;
+      console.log("🚀 ~ handleSendMessage ~ conversationId:", conversationId);
 
       // Create new conversation if none exists
       if (!conversationId) {
+        console.log("Creating new conversation...");
+
         const newConversation = await createConversation(
           content.slice(0, 50) + (content.length > 50 ? "..." : "")
         );
+
+        console.log("New conversation created:", newConversation);
 
         if (!newConversation) {
           throw new Error("Failed to create conversation");
@@ -110,19 +130,23 @@ export function ChatLayout() {
 
         conversationId = newConversation.id;
         setCurrentConversationId(conversationId);
+        console.log("Set current conversation ID to:", conversationId);
+
+        // Give a moment for the conversation to be set
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
       // Add user message immediately to UI
       const userMessage: Message = {
         id: Date.now().toString(),
-        role: "user",
+        role: "USER",
         content,
-        timestamp: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         conversationId: conversationId || "", // Ensure it's never null
       };
 
       addMessage(userMessage);
-
+      await new Promise((resolve) => setTimeout(resolve, 100));
       // Send message to backend
       await sendMessage(content, conversationId || undefined);
 
@@ -139,12 +163,13 @@ export function ChatLayout() {
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        role: "assistant",
+        role: "ASSISTANT",
         content:
           optimizationResult?.optimizedPrompt?.rawText ||
           "Prompt optimized successfully",
-        timestamp: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         conversationId: conversationId || "", // Ensure it's never null
+        isNewMessage: true, // Đánh dấu là tin nhắn mới
         metadata: {
           optimizedPrompt: optimizationResult?.optimizedPrompt,
           processingTime: optimizationResult?.metadata?.processingTime,
@@ -152,14 +177,14 @@ export function ChatLayout() {
         },
       };
 
-      // Add assistant message to UI
+      // Add assistant message locally first
       addMessage(assistantMessage);
 
       // Also save assistant message to database
       await sendMessage(
         assistantMessage.content,
         conversationId || undefined,
-        "assistant", // Specify role as assistant
+        "ASSISTANT", // Specify role as assistant
         assistantMessage.metadata // Include metadata
       );
 
@@ -175,11 +200,12 @@ export function ChatLayout() {
       // Add error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        role: "assistant",
+        role: "ASSISTANT",
         content:
           "Sorry, I encountered an error while optimizing your prompt. Please try again.",
-        timestamp: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         conversationId: currentConversationId || "", // Ensure it's never null
+        isNewMessage: true, // Đánh dấu là tin nhắn mới
       };
 
       addMessage(errorMessage);
@@ -195,6 +221,8 @@ export function ChatLayout() {
         currentConversationId={currentConversationId}
         onNewConversation={handleNewConversation}
         onSelectConversation={handleSelectConversation}
+        onRenameConversation={handleRenameConversation}
+        onDeleteConversation={handleDeleteConversation}
         loading={conversationsLoading}
       />
 
@@ -203,6 +231,7 @@ export function ChatLayout() {
           messages={messages}
           isLoading={isLoading || messagesLoading}
           onSendMessage={handleSendMessage}
+          isNewConversation={!currentConversationId}
         />
       </div>
     </div>

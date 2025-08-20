@@ -56,5 +56,6 @@ export declare class PromptsService {
     }>;
     private createSystemPrompt;
     private createUserPrompt;
+    private isModificationRequest;
     private parseStructuredPrompt;
 }
