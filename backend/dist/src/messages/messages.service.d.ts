@@ -8,24 +8,38 @@ export interface CreateMessageDto {
     role: string;
     content: string;
     metadata?: any;
+    images?: string[];
+    fileUris?: string[];
 }
 export declare class MessagesService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    create(data: CreateMessageDto, userId: string): Promise<{
-        id: string;
-        role: import(".prisma/client").$Enums.Role;
-        content: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        conversationId: string;
-    }>;
+    create(data: CreateMessageDto, userId: string): Promise<any>;
     findByConversation(conversationId: string, userId: string, page?: number, limit?: number): Promise<{
         messages: ({
             prompts: {
                 id: string;
                 createdAt: Date;
                 structuredPrompt: import("@prisma/client/runtime/library").JsonValue;
+            }[];
+            uploadedFiles: {
+                id: string;
+                createdAt: Date;
+                userId: string;
+                messageId: string | null;
+                geminiFileId: string | null;
+                originalName: string;
+                displayName: string;
+                mimeType: string;
+                sizeBytes: number;
+                uri: string;
+                sha256Hash: string;
+                state: string;
+                expirationTime: Date | null;
+                cloudinaryPublicId: string | null;
+                cloudinaryUrl: string | null;
+                cloudinarySecureUrl: string | null;
+                updatedAt: Date;
             }[];
         } & {
             id: string;

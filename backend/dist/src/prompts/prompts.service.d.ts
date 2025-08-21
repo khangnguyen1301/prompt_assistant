@@ -2,6 +2,11 @@ import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
 export interface GeneratePromptDto {
     userInput: string;
+    images?: string[];
+    fileUris?: Array<{
+        uri: string;
+        mimeType: string;
+    }>;
     conversationId?: string;
     options?: {
         language?: "vi" | "en";
@@ -23,12 +28,12 @@ export declare class PromptsService {
     private ai;
     constructor(prisma: PrismaService, configService: ConfigService);
     generateOptimizedPrompt(data: GeneratePromptDto, clerkId: string): Promise<{
-        id: string;
+        id: any;
         optimizedPrompt: StructuredPrompt;
         originalInput: string;
         metadata: {
             processingTime: number;
-            tokensUsed: number;
+            tokensUsed: any;
             model: string;
         };
     }>;
@@ -40,12 +45,12 @@ export declare class PromptsService {
             };
         } & {
             id: string;
+            userId: string;
+            messageId: string | null;
             originalInput: string;
             structuredPrompt: import("@prisma/client/runtime/library").JsonValue;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdAt: Date;
-            userId: string;
-            messageId: string | null;
         })[];
         pagination: {
             page: number;

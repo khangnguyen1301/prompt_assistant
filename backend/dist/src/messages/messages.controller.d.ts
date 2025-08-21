@@ -3,20 +3,32 @@ import { AuthUser } from "@/auth/decorators/current-user.decorator";
 export declare class MessagesController {
     private readonly messagesService;
     constructor(messagesService: MessagesService);
-    create(user: AuthUser, createMessageDto: CreateMessageDto): Promise<{
-        id: string;
-        role: import(".prisma/client").$Enums.Role;
-        content: string;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        conversationId: string;
-    }>;
+    create(user: AuthUser, createMessageDto: CreateMessageDto): Promise<any>;
     findByConversation(user: AuthUser, conversationId: string, page?: string, limit?: string): Promise<{
         messages: ({
             prompts: {
                 id: string;
                 createdAt: Date;
                 structuredPrompt: import("@prisma/client/runtime/library").JsonValue;
+            }[];
+            uploadedFiles: {
+                id: string;
+                createdAt: Date;
+                userId: string;
+                messageId: string | null;
+                geminiFileId: string | null;
+                originalName: string;
+                displayName: string;
+                mimeType: string;
+                sizeBytes: number;
+                uri: string;
+                sha256Hash: string;
+                state: string;
+                expirationTime: Date | null;
+                cloudinaryPublicId: string | null;
+                cloudinaryUrl: string | null;
+                cloudinarySecureUrl: string | null;
+                updatedAt: Date;
             }[];
         } & {
             id: string;

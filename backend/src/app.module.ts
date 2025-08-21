@@ -8,6 +8,7 @@ import { UsersModule } from "./users/users.module";
 import { ConversationsModule } from "./conversations/conversations.module";
 import { MessagesModule } from "./messages/messages.module";
 import { PromptsModule } from "./prompts/prompts.module";
+import { FilesModule } from "./files/files.module";
 import { WebhooksModule } from "./webhooks/webhooks.module";
 import { HealthModule } from "./health/health.module";
 // import { WinstonModule } from 'nest-winston';
@@ -64,6 +65,7 @@ import { HealthModule } from "./health/health.module";
     ConversationsModule,
     MessagesModule,
     PromptsModule,
+    FilesModule,
     WebhooksModule,
     HealthModule,
   ],

@@ -2,9 +2,18 @@
 
 import { useState } from "react";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { Plus, MessageSquare, Settings, History } from "lucide-react";
+import {
+  Plus,
+  MessageSquare,
+  Settings,
+  History,
+  Search,
+  PanelLeft,
+  Zap,
+} from "lucide-react";
 import { Conversation } from "./chat-layout";
 import { ConversationMenu } from "./conversation-menu";
+import { SearchModal } from "./search-modal";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
@@ -46,34 +55,50 @@ export function Sidebar({
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-700">
+      <div className="p-2 border-b border-gray-700">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
-            <h1 className="text-lg font-semibold text-white">
-              Prompt Assistant
-            </h1>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <Zap className="w-4 h-4 text-white" />
+              </div>
+              <h1 className="text-lg font-semibold text-white">
+                Prompt Assistant
+              </h1>
+            </div>
           )}
+          {/* Collapse Button */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+            className={cn(
+              " flex items-center p-3 hover:bg-gray-700 rounded-lg transition-colors",
+              isCollapsed ? "w-100" : ""
+            )}
           >
-            <MessageSquare size={20} />
+            <PanelLeft size={20} />
           </button>
         </div>
       </div>
 
       {/* New Conversation Button */}
-      <div className="p-4">
+      <div className="p-2">
         <button
           onClick={onNewConversation}
           className={cn(
-            "w-full flex items-center gap-3 p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors",
-            isCollapsed && "justify-center"
+            "mb-3 w-full flex items-center gap-3 p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors",
+            isCollapsed ? "w-100" : ""
           )}
         >
           <Plus size={20} />
-          {!isCollapsed && <span>New Conversation</span>}
+          {!isCollapsed && <span>New Chats</span>}
         </button>
+
+        {/* Search Button */}
+        <SearchModal
+          conversations={conversations}
+          onSelectConversation={onSelectConversation}
+          isCollapsed={isCollapsed}
+        />
       </div>
 
       {/* Conversations List */}
@@ -107,6 +132,7 @@ export function Sidebar({
                 </div>
               )
             ) : (
+              !isCollapsed &&
               conversations.map((conversation, index) => (
                 <div
                   key={conversation?.id || `conversation-${index}`}
@@ -136,7 +162,7 @@ export function Sidebar({
                         <div className="font-medium truncate">
                           {conversation?.title}
                         </div>
-                        <div className="text-xs text-gray-400 mt-1 truncate">
+                        <div className="text-[11px] text-gray-400 mt-1 truncate">
                           {" "}
                           {/* Add truncate here too */}
                           {conversation?.messageCount} messages •{" "}
@@ -164,7 +190,7 @@ export function Sidebar({
           </div>
         </div>
         {/* Footer */}
-        <div className="w-full absolute bottom-0 left-0 p-4 border-t border-gray-700 bg-gray-800">
+        <div className="w-full absolute bottom-0 left-0 p-2 border-t border-gray-700 bg-gray-800">
           <div
             className={cn(
               "flex items-center gap-3",

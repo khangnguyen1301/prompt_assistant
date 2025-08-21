@@ -27,6 +27,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   metadata?: MessageMetadata;
+  uploadedFiles?: UploadedFile[];
 }
 
 export interface MessageMetadata {
@@ -129,6 +130,26 @@ export enum ErrorCode {
   AI_SERVICE_ERROR = "AI_SERVICE_ERROR",
   RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED",
   INTERNAL_ERROR = "INTERNAL_ERROR",
+}
+
+export interface UploadedFile {
+  id: string;
+  userId: string;
+  messageId?: string | null;
+  geminiFileId?: string | null;
+  originalName: string;
+  displayName: string;
+  mimeType: string;
+  sizeBytes: number;
+  uri: string;
+  sha256Hash: string;
+  state: string;
+  expirationTime?: string | null;
+  cloudinaryPublicId?: string | null;
+  cloudinaryUrl?: string | null;
+  cloudinarySecureUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Constants
