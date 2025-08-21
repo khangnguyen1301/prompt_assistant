@@ -5,6 +5,17 @@ export interface Message {
   id: string;
   role: "USER" | "ASSISTANT";
   content: string;
+  images?: string[]; // Add images support (base64)
+  uploadedFiles?: {
+    id: string;
+    geminiFileId: string;
+    originalName: string;
+    displayName: string;
+    mimeType: string;
+    sizeBytes: number;
+    uri: string;
+    createdAt: string;
+  }[]; // Updated to match backend response
   createdAt: string;
   conversationId: string;
   isNewMessage?: boolean; // Flag để kiểm tra tin nhắn mới
@@ -53,7 +64,9 @@ export function useMessages(conversationId: string | null) {
       }
 
       const data = await response.json();
-      setMessages((prev) => [...prev, ...(data.messages || [])]);
+      conversationId &&
+        data.messages.length > 0 &&
+        setMessages((prev) => [...prev, ...(data.messages || [])]);
     } catch (err) {
       console.error("Error fetching messages:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -70,7 +83,9 @@ export function useMessages(conversationId: string | null) {
     content: string,
     currentConversationId?: string,
     role: "USER" | "ASSISTANT" = "USER",
-    metadata?: any
+    metadata?: any,
+    images?: string[],
+    fileUris?: string[]
   ) => {
     if (!isLoaded || !userId) return null;
 
@@ -89,6 +104,8 @@ export function useMessages(conversationId: string | null) {
             role: role.toUpperCase(), // Convert to uppercase for backend enum
             conversationId: currentConversationId || conversationId,
             metadata,
+            images,
+            fileUris,
           }),
           cache: "no-store",
         }

@@ -8,6 +8,7 @@ import { ChatArea } from "./chat-area";
 import { useConversations } from "@/hooks/useConversations";
 import { useMessages } from "@/hooks/useMessages";
 import { usePrompts } from "@/hooks/usePrompts";
+import { filesApiService } from "@/lib/files-api";
 
 export interface Conversation {
   id: string;
@@ -21,6 +22,17 @@ export interface Message {
   id: string;
   role: "USER" | "ASSISTANT";
   content: string;
+  images?: string[]; // Add images support (base64)
+  uploadedFiles?: {
+    id: string;
+    geminiFileId: string;
+    originalName: string;
+    displayName: string;
+    mimeType: string;
+    sizeBytes: number;
+    uri: string;
+    createdAt: string;
+  }[]; // Updated to match backend response
   createdAt: string;
   conversationId: string; // Make it required to match useMessages
   isNewMessage?: boolean; // Flag để kiểm tra tin nhắn mới
@@ -61,6 +73,7 @@ export function ChatLayout() {
     loading: messagesLoading,
     sendMessage,
     addMessage,
+    updateMessage,
     clearMessages,
   } = useMessages(currentConversationId);
 
@@ -90,6 +103,7 @@ export function ChatLayout() {
 
   const handleSelectConversation = (conversationId: string) => {
     setCurrentConversationId(conversationId);
+    clearMessages();
   };
 
   const handleRenameConversation = async (id: string, newTitle: string) => {
@@ -105,8 +119,17 @@ export function ChatLayout() {
     }
   };
 
-  const handleSendMessage = async (content: string) => {
-    if (!content.trim()) return;
+  const handleSendMessage = async (
+    content: string,
+    images?: string[],
+    uploadedFileIds?: string[]
+  ) => {
+    if (
+      !content.trim() &&
+      (!images || images.length === 0) &&
+      (!uploadedFileIds || uploadedFileIds.length === 0)
+    )
+      return;
 
     setIsLoading(true);
 
@@ -135,18 +158,93 @@ export function ChatLayout() {
         id: Date.now().toString(),
         role: "USER",
         content,
+        images: images, // Add images to user message
         createdAt: new Date().toISOString(),
         conversationId: conversationId || "", // Ensure it's never null
       };
 
       addMessage(userMessage);
       await new Promise((resolve) => setTimeout(resolve, 100));
-      // Send message to backend
-      await sendMessage(content, conversationId || undefined);
 
-      // Call prompt optimization using hook
+      // Send message to backend first to get the real messageId
+      const savedUserMessage = await sendMessage(
+        content,
+        conversationId || undefined,
+        "USER",
+        undefined,
+        images,
+        uploadedFileIds // Pass uploaded file IDs as fileUris
+      );
+
+      // If we have uploaded file IDs, fetch the file details to display and get URIs
+      let uploadedFileObjects: any[] = [];
+      let fileUris: Array<{ uri: string; mimeType: string }> = [];
+
+      if (uploadedFileIds && uploadedFileIds.length > 0 && user?.id) {
+        try {
+          // Fetch file details for display (files are already uploaded)
+          const fileDetails = await Promise.all(
+            uploadedFileIds.map(async (fileId) => {
+              try {
+                const response = await fetch(
+                  `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/files/by-id/${fileId}`,
+                  {
+                    headers: {
+                      "x-user-id": user.id,
+                    },
+                  }
+                );
+
+                if (!response.ok) {
+                  throw new Error("Failed to fetch file details");
+                }
+
+                return await response.json();
+              } catch (error) {
+                console.error(`Error fetching file ${fileId}:`, error);
+                // Return placeholder for failed files
+                return {
+                  id: fileId,
+                  geminiFileId: `files/${fileId}`,
+                  originalName: "Unknown",
+                  displayName: "Unknown",
+                  mimeType: "unknown",
+                  sizeBytes: 0,
+                  uri: `files/${fileId}`, // Use basic URI format
+                  createdAt: new Date().toISOString(),
+                };
+              }
+            })
+          );
+
+          uploadedFileObjects = fileDetails;
+          // Get proper URIs from file objects
+          fileUris = fileDetails.map((f) => {
+            return {
+              uri: f.uri,
+              mimeType: f.mimeType,
+            };
+          });
+
+          // Update the user message in UI to show uploaded files
+          if (uploadedFileObjects.length > 0) {
+            updateMessage(userMessage.id, {
+              uploadedFiles: uploadedFileObjects,
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching file details:", error);
+          // Create fallback URIs if fetch fails completely
+          fileUris = uploadedFileIds.map((id) => ({
+            uri: `files/${id}`,
+            mimeType: "unknown",
+          }));
+        }
+      }
       const optimizationResult = await optimizePrompt({
         userInput: content,
+        images: images, // Add images to the request
+        fileUris: fileUris, // Add file URIs to the request
         options: {
           language: "vi",
           style: "professional",
@@ -222,7 +320,8 @@ export function ChatLayout() {
       <div className="flex-1 flex flex-col">
         <ChatArea
           messages={messages}
-          isLoading={isLoading || messagesLoading}
+          isLoading={isLoading}
+          messagesLoading={messagesLoading}
           onSendMessage={handleSendMessage}
           isNewConversation={!currentConversationId}
         />

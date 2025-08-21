@@ -23,6 +23,7 @@ model User {
   conversations Conversation[]
   prompts       Prompt[]
   sessions      UserSession[]
+  uploadedFiles UploadedFile[]
 
   @@map("users")
 }
@@ -73,8 +74,9 @@ model Message {
   createdAt      DateTime @default(now())
 
   // Relations
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  prompts      Prompt[]
+  conversation  Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  prompts       Prompt[]
+  uploadedFiles UploadedFile[]
 
   @@index([conversationId])
   @@index([createdAt])
@@ -97,6 +99,39 @@ model Prompt {
   @@index([userId])
   @@index([createdAt])
   @@map("prompts")
+}
+
+model UploadedFile {
+  id             String    @id @default(uuid())
+  userId         String
+  messageId      String?
+  geminiFileId   String?   @unique
+  originalName   String
+  displayName    String
+  mimeType       String
+  sizeBytes      Int
+  uri            String
+  sha256Hash     String
+  state          String    @default("ACTIVE")
+  expirationTime DateTime?
+  
+  // Cloudinary fields
+  cloudinaryPublicId String?
+  cloudinaryUrl      String?
+  cloudinarySecureUrl String?
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message Message? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([messageId])
+  @@index([geminiFileId])
+  @@index([createdAt])
+  @@map("uploaded_files")
 }
 
 enum Role {

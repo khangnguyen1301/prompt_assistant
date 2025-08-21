@@ -4,12 +4,12 @@ export declare class PromptsController {
     private readonly promptsService;
     constructor(promptsService: PromptsService);
     generatePrompt(user: AuthUser, generatePromptDto: GeneratePromptDto): Promise<{
-        id: string;
+        id: any;
         optimizedPrompt: import("./prompts.service").StructuredPrompt;
         originalInput: string;
         metadata: {
             processingTime: number;
-            tokensUsed: number;
+            tokensUsed: any;
             model: string;
         };
     }>;
@@ -21,12 +21,12 @@ export declare class PromptsController {
             };
         } & {
             id: string;
+            userId: string;
+            messageId: string | null;
             originalInput: string;
             structuredPrompt: import("@prisma/client/runtime/library").JsonValue;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdAt: Date;
-            userId: string;
-            messageId: string | null;
         })[];
         pagination: {
             page: number;

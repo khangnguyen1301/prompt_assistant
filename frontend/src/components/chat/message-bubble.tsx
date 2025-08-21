@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import {
   Copy,
   Check,
@@ -11,9 +12,11 @@ import {
   FileText,
   List,
   StickyNote,
+  Paperclip,
 } from "lucide-react";
 import { Message } from "./chat-layout";
 import { TypingText } from "@/components/ui/typing-text";
+import { FileDisplay } from "./file-display";
 import { cn } from "@/lib/utils";
 
 interface MessageBubbleProps {
@@ -21,6 +24,7 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
+  const { user } = useUser();
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = async (text: string) => {
@@ -40,13 +44,51 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     });
   };
 
+  console.log("🚀 ~ MessageBubble ~ message:", message);
   if (message.role === "USER") {
     return (
       <div className="flex justify-end">
         <div className="max-w-[80%] bg-blue-600 text-white rounded-lg p-4">
-          <div className="whitespace-pre-wrap break-words">
-            {message.content}
-          </div>
+          {/* Files */}
+          {message.uploadedFiles && message.uploadedFiles.length > 0 && (
+            <div className="mb-3">
+              <div className="space-y-2">
+                {message.uploadedFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    className="bg-blue-700 bg-opacity-50 rounded-lg p-2"
+                  >
+                    <FileDisplay
+                      file={file}
+                      isImage={file.mimeType.startsWith("image/")}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Images */}
+          {message.images && message.images.length > 0 && (
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              {message.images.map((image, index) => (
+                <img
+                  key={index}
+                  src={`data:image/jpeg;base64,${image}`}
+                  alt={`User upload ${index + 1}`}
+                  className="w-full h-32 object-cover rounded-lg border border-blue-400"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Text content */}
+          {message.content && (
+            <div className="whitespace-pre-wrap break-words">
+              {message.content}
+            </div>
+          )}
+
           <div className="text-xs text-blue-100 mt-2 flex items-center gap-1">
             <Clock className="w-3 h-3" />
             {formatTime(message.createdAt)}
@@ -100,118 +142,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         {/* Optimized prompt structure */}
         {optimizedPrompt ? (
           <div className="p-4 space-y-4">
-            {/* Goal */}
-            {optimizedPrompt.goal && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <Target className="w-4 h-4 text-green-600" />
-                  Goal
-                </div>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <TypingText
-                    text={optimizedPrompt.goal}
-                    speed={3}
-                    delay={200}
-                    className="text-green-800"
-                    enableTyping={message.isNewMessage || false}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Input */}
-            {optimizedPrompt.input && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <ArrowRight className="w-4 h-4 text-blue-600" />
-                  Input
-                </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <TypingText
-                    text={optimizedPrompt.input}
-                    speed={3}
-                    delay={500}
-                    className="text-blue-800"
-                    enableTyping={message.isNewMessage || false}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Output */}
-            {optimizedPrompt.output && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <FileText className="w-4 h-4 text-purple-600" />
-                  Expected Output
-                </div>
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                  <TypingText
-                    text={optimizedPrompt.output}
-                    speed={3}
-                    delay={800}
-                    className="text-purple-800"
-                    enableTyping={message.isNewMessage || false}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Instructions */}
-            {optimizedPrompt.instructions &&
-              optimizedPrompt.instructions.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <List className="w-4 h-4 text-orange-600" />
-                    Instructions
-                  </div>
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                    <ul className="space-y-1 text-orange-800">
-                      {optimizedPrompt.instructions.map(
-                        (instruction, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="text-orange-400 mt-1">•</span>
-                            <TypingText
-                              text={instruction}
-                              speed={3}
-                              delay={1100 + index * 300}
-                              className=""
-                              enableTyping={message.isNewMessage || false}
-                            />
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-                </div>
-              )}
-
-            {/* Notes */}
-            {optimizedPrompt.notes && optimizedPrompt.notes.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <StickyNote className="w-4 h-4 text-yellow-600" />
-                  Additional Notes
-                </div>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <ul className="space-y-1 text-yellow-800">
-                    {optimizedPrompt.notes.map((note, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="text-yellow-400 mt-1">•</span>
-                        <TypingText
-                          text={note}
-                          speed={3}
-                          delay={1500 + index * 300}
-                          className=""
-                          enableTyping={message.isNewMessage || false}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
             {/* Raw optimized prompt */}
             {optimizedPrompt.rawText && (
               <div className="space-y-2">

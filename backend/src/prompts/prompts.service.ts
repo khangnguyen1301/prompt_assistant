@@ -5,10 +5,16 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
-import { GoogleGenAI } from "@google/genai";
+import {
+  createPartFromUri,
+  createUserContent,
+  GoogleGenAI,
+} from "@google/genai";
 
 export interface GeneratePromptDto {
   userInput: string;
+  images?: string[]; // Base64 strings for backward compatibility
+  fileUris?: Array<{ uri: string; mimeType: string }>; // Gemini file URIs for new ai.files approach
   conversationId?: string;
   options?: {
     language?: "vi" | "en";
@@ -44,10 +50,20 @@ export class PromptsService {
   }
 
   async generateOptimizedPrompt(data: GeneratePromptDto, clerkId: string) {
+    console.log(
+      "🚀 ~ PromptsService ~ generateOptimizedPrompt ~ clerkId:",
+      clerkId
+    );
     try {
-      // Validate input
-      if (!data.userInput?.trim()) {
-        throw new BadRequestException("User input is required");
+      // Validate input - allow either text, images, or file URIs
+      if (
+        !data.userInput?.trim() &&
+        (!data.images || data.images.length === 0) &&
+        (!data.fileUris || data.fileUris.length === 0)
+      ) {
+        throw new BadRequestException(
+          "User input, images, or file URIs are required"
+        );
       }
 
       // Find user by clerkId to get database userId
@@ -64,31 +80,38 @@ export class PromptsService {
       let isModificationRequest = false;
 
       if (data.conversationId) {
-        const conversation = await this.prisma.conversation.findUnique({
-          where: { id: data.conversationId },
-          include: {
-            messages: {
-              orderBy: { createdAt: "desc" },
-              take: 2, // Only last 2 messages (current user + last assistant)
+        try {
+          const conversation = await this.prisma.conversation.findUnique({
+            where: { id: data.conversationId },
+            include: {
+              messages: {
+                orderBy: { createdAt: "desc" },
+                take: 5,
+              },
             },
-          },
-        });
+          });
 
-        if (
-          conversation &&
-          conversation.userId === user.id &&
-          conversation.messages.length > 0
-        ) {
-          // Get the last assistant message (should be the most recent prompt)
-          const lastAssistant = conversation.messages.find(
-            (msg) => msg.role === "ASSISTANT"
-          );
-          if (lastAssistant) {
-            lastAssistantMessage = lastAssistant.content;
+          if (
+            conversation &&
+            conversation.userId === user.id &&
+            conversation.messages.length > 0
+          ) {
+            // Get the last assistant message (should be the most recent prompt)
+            const lastAssistant = conversation.messages.find(
+              (msg) => msg.role === "ASSISTANT"
+            );
+            if (lastAssistant) {
+              lastAssistantMessage = lastAssistant.content;
 
-            // Detect if this is a modification request
-            isModificationRequest = this.isModificationRequest(data.userInput);
+              // Detect if this is a modification request
+              isModificationRequest = this.isModificationRequest(
+                data.userInput
+              );
+            }
           }
+        } catch (error) {
+          console.warn("Error fetching conversation context:", error);
+          // Continue without context if conversation fetch fails
         }
       }
 
@@ -97,43 +120,182 @@ export class PromptsService {
 
       // Create user prompt with context
       const userPrompt = this.createUserPrompt(
-        data.userInput,
+        data.userInput || "", // Allow empty string if only images
         lastAssistantMessage,
         isModificationRequest,
-        data.options
+        data.options,
+        (data.images && data.images.length > 0) ||
+          (data.fileUris && data.fileUris.length > 0) // Pass image flag
       );
 
-      // Call Gemini API using new @google/genai structure
+      console.log("🚀 User Input:", data.userInput);
+      console.log("🚀 Generated User Prompt:", userPrompt);
+
+      // Prepare content for Gemini - with error handling
+      const parts = [];
+
+      // Add text content
+      if (userPrompt && userPrompt.trim()) {
+        parts.push({ text: userPrompt });
+      }
+
+      // Add images if provided (base64 - legacy support)
+      if (data.images && data.images.length > 0) {
+        console.log("🚀 Adding images:", data.images.length);
+        try {
+          data.images.forEach((image, index) => {
+            if (image && image.trim()) {
+              parts.push({
+                inlineData: {
+                  mimeType: "image/jpeg", // Assume JPEG, could be improved to detect actual type
+                  data: image,
+                },
+              });
+            } else {
+              console.warn(`Skipping empty image at index ${index}`);
+            }
+          });
+        } catch (error) {
+          console.error("Error processing images:", error);
+          throw new BadRequestException("Invalid image format");
+        }
+      }
+
+      // Add file URIs if provided (new ai.files approach)
+      if (data.fileUris && data.fileUris.length > 0) {
+        console.log("🚀 Adding file URIs:", data.fileUris.length);
+        try {
+          data.fileUris.forEach((file, index) => {
+            if (file && file.uri && file.mimeType) {
+              console.log(`🚀 Processing file ${index}:`, file);
+              parts.push(createPartFromUri(file.uri, file.mimeType));
+            } else {
+              console.warn(`Skipping invalid file at index ${index}:`, file);
+            }
+          });
+        } catch (error) {
+          console.error("Error processing file URIs:", error);
+          throw new BadRequestException("Invalid file URI format");
+        }
+      }
+
+      // Validate we have at least some content
+      if (parts.length === 0) {
+        throw new BadRequestException("No valid content to process");
+      }
+
+      console.log("🚀 Final parts for Gemini:", JSON.stringify(parts, null, 2));
+
+      // Call Gemini API with retry logic
       const startTime = Date.now();
-      const response = await this.ai.models.generateContent({
-        model: "gemini-2.5-pro",
-        contents: userPrompt,
-        config: {
-          systemInstruction: systemPrompt,
-        },
-      });
+      let response;
+
+      try {
+        response = await this.ai.models.generateContent({
+          model: "gemini-2.5-pro",
+          contents: [
+            {
+              role: "user",
+              parts: parts,
+            },
+          ],
+          config: {
+            systemInstruction: systemPrompt,
+            maxOutputTokens: 8192,
+            temperature: 0.7,
+            topP: 0.8,
+            topK: 40,
+          },
+        });
+
+        console.log("🚀 Gemini Response received");
+        console.log("🔍 Full response:", JSON.stringify(response, null, 2));
+        console.log("🔍 Response.text:", response.text);
+        console.log("🔍 Response.candidates:", response.candidates);
+      } catch (geminiError) {
+        console.error("� Gemini API Error:", geminiError);
+
+        // Check if it's a specific error we can handle
+        if (geminiError.message?.includes("INTERNAL")) {
+          throw new InternalServerErrorException(
+            "Gemini API is temporarily unavailable. Please try again in a moment."
+          );
+        } else if (geminiError.message?.includes("PERMISSION_DENIED")) {
+          throw new InternalServerErrorException(
+            "API authentication error. Please contact support."
+          );
+        } else if (geminiError.message?.includes("INVALID_ARGUMENT")) {
+          throw new BadRequestException(
+            "Invalid request format. Please check your input."
+          );
+        } else {
+          throw new InternalServerErrorException(
+            `Failed to generate prompt: ${geminiError.message || "Unknown error"}`
+          );
+        }
+      }
 
       const processingTime = Date.now() - startTime;
 
-      const optimizedPromptText = response.text;
+      // Try different ways to access the response text
+      let optimizedPromptText = "";
+
+      if (response.text) {
+        optimizedPromptText = response.text;
+      } else if (
+        response.candidates &&
+        response.candidates[0]?.content?.parts?.[0]?.text
+      ) {
+        optimizedPromptText = response.candidates[0].content.parts[0].text;
+      } else if (response.candidates && response.candidates[0]?.output) {
+        optimizedPromptText = response.candidates[0].output;
+      }
+
+      console.log("🚀 Extracted prompt text:", optimizedPromptText);
+
+      if (!optimizedPromptText || !optimizedPromptText.trim()) {
+        console.error(
+          "🚨 No text found in response:",
+          JSON.stringify(response, null, 2)
+        );
+        throw new InternalServerErrorException(
+          "Gemini API returned empty response. This might be due to content filtering or API issues."
+        );
+      }
 
       // Parse structured prompt
       const structuredPrompt = this.parseStructuredPrompt(optimizedPromptText);
 
-      // Save to database
-      const savedPrompt = await this.prisma.prompt.create({
-        data: {
-          userId: user.id,
+      // Save to database with error handling
+      let savedPrompt;
+      try {
+        savedPrompt = await this.prisma.prompt.create({
+          data: {
+            userId: user.id,
+            originalInput: data.userInput,
+            structuredPrompt: structuredPrompt as any,
+            metadata: {
+              processingTime,
+              options: data.options,
+              conversationId: data.conversationId,
+              tokensUsed: response.usageMetadata?.totalTokenCount || 0,
+            },
+          },
+        });
+      } catch (dbError) {
+        console.error("Error saving prompt to database:", dbError);
+        // Still return the result even if database save fails
+        return {
+          id: "temp-" + Date.now(),
+          optimizedPrompt: structuredPrompt,
           originalInput: data.userInput,
-          structuredPrompt: structuredPrompt as any,
           metadata: {
             processingTime,
-            options: data.options,
-            conversationId: data.conversationId,
             tokensUsed: response.usageMetadata?.totalTokenCount || 0,
+            model: "gemini-2.5-pro",
           },
-        },
-      });
+        };
+      }
 
       return {
         id: savedPrompt.id,
@@ -146,9 +308,19 @@ export class PromptsService {
         },
       };
     } catch (error) {
-      console.error("Error generating prompt:", error);
+      console.error("🚨 Error generating prompt:", error);
+
+      // Re-throw known errors
+      if (
+        error instanceof BadRequestException ||
+        error instanceof InternalServerErrorException
+      ) {
+        throw error;
+      }
+
+      // Handle unexpected errors
       throw new InternalServerErrorException(
-        "Failed to generate optimized prompt"
+        `Failed to generate optimized prompt: ${error.message || "Unknown error"}`
       );
     }
   }
@@ -264,7 +436,8 @@ Optimize the prompt to be:
     userInput: string,
     lastAssistantMessage: string,
     isModificationRequest: boolean,
-    options?: any
+    options?: any,
+    hasImages = false
   ): string {
     const language = options?.language || "vi";
 
@@ -278,10 +451,25 @@ Optimize the prompt to be:
           : `Based on the previously optimized prompt, please modify it according to the new request.\n\nPrevious prompt:\n${lastAssistantMessage}\n\nModification request: "${userInput}"\n\nReturn the modified prompt in standard format.`;
     } else {
       // This is a new prompt optimization request
-      prompt =
-        language === "vi"
-          ? `Tối ưu hóa yêu cầu sau thành prompt có cấu trúc:\n\n"${userInput}"`
-          : `Optimize the following request into a structured prompt:\n\n"${userInput}"`;
+      if (hasImages && !userInput.trim()) {
+        // Only images, no text
+        prompt =
+          language === "vi"
+            ? `Hãy phân tích các hình ảnh được cung cấp và tạo một prompt có cấu trúc dựa trên nội dung hình ảnh. Prompt cần rõ ràng và có thể sử dụng để hướng dẫn AI xử lý các hình ảnh tương tự.`
+            : `Please analyze the provided images and create a structured prompt based on the image content. The prompt should be clear and usable to guide AI in processing similar images.`;
+      } else if (hasImages && userInput.trim()) {
+        // Both text and images
+        prompt =
+          language === "vi"
+            ? `Dựa trên mô tả: "${userInput}" và các hình ảnh được cung cấp, hãy tối ưu hóa thành prompt có cấu trúc. Kết hợp thông tin từ cả text và hình ảnh để tạo prompt toàn diện.`
+            : `Based on the description: "${userInput}" and the provided images, optimize into a structured prompt. Combine information from both text and images to create a comprehensive prompt.`;
+      } else {
+        // Only text, no images
+        prompt =
+          language === "vi"
+            ? `Tối ưu hóa yêu cầu sau thành prompt có cấu trúc:\n\n"${userInput}"`
+            : `Optimize the following request into a structured prompt:\n\n"${userInput}"`;
+      }
     }
 
     if (options?.style) {

@@ -3,6 +3,8 @@ import { useAuth } from "@clerk/nextjs";
 
 export interface OptimizePromptRequest {
   userInput: string;
+  images?: string[]; // Add images support (base64)
+  fileUris?: Array<{ uri: string; mimeType: string }>; // Add file URIs support
   options?: {
     language?: string;
     style?: string;

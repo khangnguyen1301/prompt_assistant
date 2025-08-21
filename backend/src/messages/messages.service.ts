@@ -15,6 +15,8 @@ export interface CreateMessageDto {
   role: string; // Accept string and convert to enum
   content: string;
   metadata?: any;
+  images?: string[]; // Support for base64 images
+  fileUris?: string[]; // Support for uploaded file IDs
 }
 
 @Injectable()
@@ -45,13 +47,43 @@ export class MessagesService {
       },
     });
 
+    // Link uploaded files to this message if fileUris provided
+    if (data.fileUris && data.fileUris.length > 0) {
+      // Convert fileUris (which are actually file IDs) to proper updates
+      const fileIds = data.fileUris;
+
+      try {
+        await this.prisma.uploadedFile.updateMany({
+          where: {
+            id: { in: fileIds },
+            userId: userId, // Ensure files belong to the user
+            messageId: null, // Only update files not already linked to a message
+          },
+          data: {
+            messageId: message.id,
+          },
+        });
+      } catch (error) {
+        console.error("Error linking files to message:", error);
+        // Don't fail the message creation if file linking fails
+      }
+    }
+
     // Update conversation's last activity
     await this.prisma.conversation.update({
       where: { id: data.conversationId },
       data: { updatedAt: new Date() },
     });
 
-    return message;
+    // Return message with linked files
+    const messageWithFiles = (await this.prisma.message.findUnique({
+      where: { id: message.id },
+      include: {
+        uploadedFiles: true, // Include all fields for now
+      },
+    })) as any;
+
+    return messageWithFiles || message;
   }
 
   async findByConversation(
@@ -89,6 +121,7 @@ export class MessagesService {
               createdAt: true,
             },
           },
+          uploadedFiles: true, // Include all uploadedFile fields
         },
       }),
       this.prisma.message.count({

@@ -6,17 +6,24 @@ import { Message } from "./chat-layout";
 
 import { ChatInput } from "./chat-input";
 import { MessageBubble } from "./message-bubble";
+import { MessageSkeleton } from "@/components/ui/message-skeleton";
 
 interface ChatAreaProps {
   messages: Message[];
   isLoading: boolean;
-  onSendMessage: (content: string) => void;
+  messagesLoading?: boolean; // Add this for message history loading
+  onSendMessage: (
+    content: string,
+    images?: string[],
+    uploadedFileIds?: string[]
+  ) => void;
   isNewConversation?: boolean; // Add this prop
 }
 
 export function ChatArea({
   messages,
   isLoading,
+  messagesLoading = false,
   onSendMessage,
   isNewConversation = false,
 }: ChatAreaProps) {
@@ -51,7 +58,15 @@ export function ChatArea({
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 ? (
+        {messagesLoading ? (
+          // Show skeleton loading for message history
+          <div className="space-y-4">
+            <MessageSkeleton isUser={true} />
+            <MessageSkeleton isUser={false} />
+            <MessageSkeleton isUser={true} />
+            <MessageSkeleton isUser={false} />
+          </div>
+        ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="bg-blue-50 rounded-full p-6 mb-4">
               <Send className="w-12 h-12 text-blue-600" />

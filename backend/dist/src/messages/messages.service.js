@@ -39,11 +39,35 @@ let MessagesService = class MessagesService {
                 metadata: data.metadata,
             },
         });
+        if (data.fileUris && data.fileUris.length > 0) {
+            const fileIds = data.fileUris;
+            try {
+                await this.prisma.uploadedFile.updateMany({
+                    where: {
+                        id: { in: fileIds },
+                        userId: userId,
+                        messageId: null,
+                    },
+                    data: {
+                        messageId: message.id,
+                    },
+                });
+            }
+            catch (error) {
+                console.error("Error linking files to message:", error);
+            }
+        }
         await this.prisma.conversation.update({
             where: { id: data.conversationId },
             data: { updatedAt: new Date() },
         });
-        return message;
+        const messageWithFiles = (await this.prisma.message.findUnique({
+            where: { id: message.id },
+            include: {
+                uploadedFiles: true,
+            },
+        }));
+        return messageWithFiles || message;
     }
     async findByConversation(conversationId, userId, page = 1, limit = 50) {
         const conversation = await this.prisma.conversation.findUnique({
@@ -70,6 +94,7 @@ let MessagesService = class MessagesService {
                             createdAt: true,
                         },
                     },
+                    uploadedFiles: true,
                 },
             }),
             this.prisma.message.count({

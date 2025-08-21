@@ -4,6 +4,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 // Types for the optimization request and response
 interface OptimizeRequest {
   prompt: string;
+  images?: string[]; // Add images support
   context?: string;
   style?: "professional" | "casual" | "technical" | "creative";
   targetAudience?: string;
@@ -66,7 +67,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { prompt, context, style = "professional", targetAudience } = body;
+    const {
+      prompt,
+      images,
+      context,
+      style = "professional",
+      targetAudience,
+    } = body;
 
     // Call backend service to optimize prompt
     const backendUrl =
@@ -86,6 +93,7 @@ export async function POST(request: NextRequest) {
       headers,
       body: JSON.stringify({
         userInput: prompt, // Changed from originalPrompt to userInput
+        images: images, // Add images to the request
         options: {
           language: "vi",
           style: style,
