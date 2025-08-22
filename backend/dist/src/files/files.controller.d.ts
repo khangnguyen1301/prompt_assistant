@@ -13,6 +13,8 @@ export declare class FilesController {
     uploadFile(file: MulterFile, clerkId: string, messageId?: string): Promise<import("./files.service").UploadedFile>;
     getFileById(fileId: string, clerkId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         userId: string;
         messageId: string | null;
         geminiFileId: string | null;
@@ -27,11 +29,11 @@ export declare class FilesController {
         cloudinaryPublicId: string | null;
         cloudinaryUrl: string | null;
         cloudinarySecureUrl: string | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getFile(geminiFileId: string, clerkId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         userId: string;
         messageId: string | null;
         geminiFileId: string | null;
@@ -46,12 +48,12 @@ export declare class FilesController {
         cloudinaryPublicId: string | null;
         cloudinaryUrl: string | null;
         cloudinarySecureUrl: string | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getFileContent(geminiFileId: string, clerkId: string, res: Response): Promise<StreamableFile>;
     listFiles(page: string, limit: string, clerkId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         userId: string;
         messageId: string | null;
         geminiFileId: string | null;
@@ -66,8 +68,6 @@ export declare class FilesController {
         cloudinaryPublicId: string | null;
         cloudinaryUrl: string | null;
         cloudinarySecureUrl: string | null;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
     deleteFile(fileId: string, clerkId: string): Promise<{
         success: boolean;

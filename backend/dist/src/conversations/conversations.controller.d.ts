@@ -4,17 +4,17 @@ export declare class ConversationsController {
     private readonly conversationsService;
     constructor(conversationsService: ConversationsService);
     create(user: AuthUser, createConversationDto: CreateConversationDto): Promise<{
-        messages: {
-            id: string;
-            createdAt: Date;
-            content: string;
-            conversationId: string;
-            role: import(".prisma/client").$Enums.Role;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        }[];
         _count: {
             messages: number;
         };
+        messages: {
+            id: string;
+            createdAt: Date;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            conversationId: string;
+            role: import(".prisma/client").$Enums.Role;
+            content: string;
+        }[];
     } & {
         id: string;
         createdAt: Date;
@@ -24,17 +24,17 @@ export declare class ConversationsController {
     }>;
     findAll(user: AuthUser, page?: string, limit?: string): Promise<{
         conversations: ({
-            messages: {
-                id: string;
-                createdAt: Date;
-                content: string;
-                conversationId: string;
-                role: import(".prisma/client").$Enums.Role;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            }[];
             _count: {
                 messages: number;
             };
+            messages: {
+                id: string;
+                createdAt: Date;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                conversationId: string;
+                role: import(".prisma/client").$Enums.Role;
+                content: string;
+            }[];
         } & {
             id: string;
             createdAt: Date;
@@ -60,10 +60,10 @@ export declare class ConversationsController {
         messages: {
             id: string;
             createdAt: Date;
-            content: string;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             conversationId: string;
             role: import(".prisma/client").$Enums.Role;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            content: string;
         }[];
     } & {
         id: string;
@@ -76,10 +76,10 @@ export declare class ConversationsController {
         messages: {
             id: string;
             createdAt: Date;
-            content: string;
+            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             conversationId: string;
             role: import(".prisma/client").$Enums.Role;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            content: string;
         }[];
     } & {
         id: string;

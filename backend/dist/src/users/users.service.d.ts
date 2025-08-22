@@ -22,6 +22,7 @@ export declare class UsersService {
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        geminiApiKey: string | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -32,6 +33,7 @@ export declare class UsersService {
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        geminiApiKey: string | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -42,6 +44,7 @@ export declare class UsersService {
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        geminiApiKey: string | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -52,6 +55,7 @@ export declare class UsersService {
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        geminiApiKey: string | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -62,6 +66,7 @@ export declare class UsersService {
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        geminiApiKey: string | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -72,6 +77,7 @@ export declare class UsersService {
         firstName: string | null;
         lastName: string | null;
         imageUrl: string | null;
+        geminiApiKey: string | null;
         createdAt: Date;
         updatedAt: Date;
     }>;

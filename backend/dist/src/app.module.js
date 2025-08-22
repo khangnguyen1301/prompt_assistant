@@ -18,6 +18,7 @@ const conversations_module_1 = require("./conversations/conversations.module");
 const messages_module_1 = require("./messages/messages.module");
 const prompts_module_1 = require("./prompts/prompts.module");
 const files_module_1 = require("./files/files.module");
+const settings_module_1 = require("./settings/settings.module");
 const webhooks_module_1 = require("./webhooks/webhooks.module");
 const health_module_1 = require("./health/health.module");
 let AppModule = class AppModule {
@@ -47,6 +48,7 @@ exports.AppModule = AppModule = __decorate([
             messages_module_1.MessagesModule,
             prompts_module_1.PromptsModule,
             files_module_1.FilesModule,
+            settings_module_1.SettingsModule,
             webhooks_module_1.WebhooksModule,
             health_module_1.HealthModule,
         ],

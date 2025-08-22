@@ -35,6 +35,8 @@ export declare class FilesService {
     }>;
     getFileById(fileId: string, clerkId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         userId: string;
         messageId: string | null;
         geminiFileId: string | null;
@@ -49,11 +51,11 @@ export declare class FilesService {
         cloudinaryPublicId: string | null;
         cloudinaryUrl: string | null;
         cloudinarySecureUrl: string | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getFile(geminiFileId: string, clerkId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         userId: string;
         messageId: string | null;
         geminiFileId: string | null;
@@ -68,8 +70,6 @@ export declare class FilesService {
         cloudinaryPublicId: string | null;
         cloudinaryUrl: string | null;
         cloudinarySecureUrl: string | null;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     getFileContent(geminiFileId: string, clerkId: string): Promise<{
         buffer: Buffer<ArrayBuffer>;
@@ -78,6 +78,8 @@ export declare class FilesService {
     }>;
     listFiles(clerkId: string, limit?: number, offset?: number): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         userId: string;
         messageId: string | null;
         geminiFileId: string | null;
@@ -92,8 +94,6 @@ export declare class FilesService {
         cloudinaryPublicId: string | null;
         cloudinaryUrl: string | null;
         cloudinarySecureUrl: string | null;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
     deleteFile(geminiFileId: string, clerkId: string): Promise<{
         success: boolean;

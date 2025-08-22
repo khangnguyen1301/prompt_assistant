@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
+import { SettingsService } from "../settings/settings.service";
 import {
   createPartFromUri,
   createUserContent,
@@ -34,20 +35,11 @@ export interface StructuredPrompt {
 
 @Injectable()
 export class PromptsService {
-  private ai: GoogleGenAI;
-
   constructor(
     private readonly prisma: PrismaService,
-    private readonly configService: ConfigService
-  ) {
-    const apiKey = this.configService.get<string>("GEMINI_API_KEY");
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is required");
-    }
-
-    // Use new @google/genai API structure
-    this.ai = new GoogleGenAI({ apiKey });
-  }
+    private readonly configService: ConfigService,
+    private readonly settingsService: SettingsService
+  ) {}
 
   async generateOptimizedPrompt(data: GeneratePromptDto, clerkId: string) {
     console.log(
@@ -186,13 +178,25 @@ export class PromptsService {
 
       console.log("🚀 Final parts for Gemini:", JSON.stringify(parts, null, 2));
 
+      // Get user's API key from database
+      const userApiKey = await this.settingsService.getUserApiKey(clerkId);
+
+      if (!userApiKey) {
+        throw new BadRequestException(
+          "No Gemini API key configured. Please add your API key in settings."
+        );
+      }
+
+      // Create AI instance with user's API key
+      const ai = new GoogleGenAI({ apiKey: userApiKey });
+
       // Call Gemini API with retry logic
       const startTime = Date.now();
       let response;
 
       try {
-        response = await this.ai.models.generateContent({
-          model: "gemini-2.5-pro",
+        response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
           contents: [
             {
               role: "user",

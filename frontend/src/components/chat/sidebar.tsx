@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { UserButton, useUser } from "@clerk/nextjs";
+import Link from "next/link";
 import {
   Plus,
   MessageSquare,
@@ -15,6 +16,7 @@ import { Conversation } from "./chat-layout";
 import { ConversationMenu } from "./conversation-menu";
 import { SearchModal } from "./search-modal";
 import { cn } from "@/lib/utils";
+import { useApiKeyStatus } from "@/hooks/useApiKeyStatus";
 
 interface SidebarProps {
   conversations: Conversation[];
@@ -37,7 +39,7 @@ export function Sidebar({
 }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user } = useUser();
-
+  const { status: apiKeyStatus, loading: apiKeyLoading } = useApiKeyStatus();
   // Function to handle user info click (same as UserButton click behavior)
   const handleUserInfoClick = () => {
     // This will trigger the same action as clicking UserButton
@@ -197,25 +199,36 @@ export function Sidebar({
               isCollapsed && "justify-center"
             )}
           >
-            <div className="flex items-center justify-start gap-2 flex-1 cursor-pointer hover:bg-gray-700 rounded-lg p-2 transition-colors">
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8",
-                  },
-                }}
-                afterSignOutUrl="/sign-in"
-              />
-              {!isCollapsed && (
-                <div onClick={!isCollapsed ? handleUserInfoClick : undefined}>
-                  <div className="text-sm font-medium truncate">
-                    {user?.fullName || user?.firstName || "User"}
+            <div className="flex items-center justify-between gap-2 flex-1 cursor-pointer hover:bg-gray-700 rounded-lg p-2 transition-colors">
+              <div className="flex items-center gap-2">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8",
+                    },
+                  }}
+                  afterSignOutUrl="/sign-in"
+                />
+                {!isCollapsed && (
+                  <div onClick={!isCollapsed ? handleUserInfoClick : undefined}>
+                    <div className="text-sm font-medium truncate">
+                      {user?.fullName || user?.firstName || "User"}
+                    </div>
+                    <div className="text-xs text-gray-400 truncate">
+                      {user?.emailAddresses?.[0]?.emailAddress || "No email"}
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-400 truncate">
-                    {user?.emailAddresses?.[0]?.emailAddress || "No email"}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  apiKeyLoading
+                    ? "bg-gray-400"
+                    : apiKeyStatus
+                      ? "bg-green-500"
+                      : "bg-amber-500"
+                }`}
+              ></div>
             </div>
           </div>
         </div>
