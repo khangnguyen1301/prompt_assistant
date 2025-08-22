@@ -1,12 +1,15 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, Settings } from "lucide-react";
 import { Message } from "./chat-layout";
-
+import { useApiKeyStatus } from "@/hooks/useApiKeyStatus";
+import { ApiKeyWarning } from "./api-key-warning";
+import { SettingsDialog } from "../settings/settings-dialog";
 import { ChatInput } from "./chat-input";
 import { MessageBubble } from "./message-bubble";
 import { MessageSkeleton } from "@/components/ui/message-skeleton";
+import { cn } from "@/lib/utils";
 
 interface ChatAreaProps {
   messages: Message[];
@@ -28,6 +31,7 @@ export function ChatArea({
   isNewConversation = false,
 }: ChatAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { status: apiKeyStatus, loading: apiKeyLoading } = useApiKeyStatus();
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -47,10 +51,22 @@ export function ChatArea({
               Transform your raw requests into optimized prompts
             </p>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">AI Ready</span>
+          <div className="flex items-center flex-col space-x-2">
+            <div className="flex items-center space-x-1"></div>
+            {/* Settings Button */}
+            <div className="mb-2">
+              <SettingsDialog
+                trigger={
+                  <div
+                    className={cn(
+                      "flex items-center gap-3 p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors cursor-pointer"
+                    )}
+                  >
+                    <Settings size={20} />
+                    <span>Settings</span>
+                  </div>
+                }
+              />
             </div>
           </div>
         </div>
@@ -58,6 +74,9 @@ export function ChatArea({
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* API Key Warning */}
+        {!apiKeyLoading && !apiKeyStatus.hasApiKey && <ApiKeyWarning />}
+
         {messagesLoading ? (
           // Show skeleton loading for message history
           <div className="space-y-4">
@@ -120,6 +139,7 @@ export function ChatArea({
         onSendMessage={onSendMessage}
         isLoading={isLoading}
         isNewConversation={isNewConversation}
+        disabled={!apiKeyStatus.hasApiKey}
       />
     </div>
   );

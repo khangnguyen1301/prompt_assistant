@@ -1,5 +1,6 @@
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../prisma/prisma.service";
+import { SettingsService } from "../settings/settings.service";
 export interface GeneratePromptDto {
     userInput: string;
     images?: string[];
@@ -25,8 +26,8 @@ export interface StructuredPrompt {
 export declare class PromptsService {
     private readonly prisma;
     private readonly configService;
-    private ai;
-    constructor(prisma: PrismaService, configService: ConfigService);
+    private readonly settingsService;
+    constructor(prisma: PrismaService, configService: ConfigService, settingsService: SettingsService);
     generateOptimizedPrompt(data: GeneratePromptDto, clerkId: string): Promise<{
         id: any;
         optimizedPrompt: StructuredPrompt;

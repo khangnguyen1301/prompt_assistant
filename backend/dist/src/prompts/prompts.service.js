@@ -13,16 +13,13 @@ exports.PromptsService = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../prisma/prisma.service");
+const settings_service_1 = require("../settings/settings.service");
 const genai_1 = require("@google/genai");
 let PromptsService = class PromptsService {
-    constructor(prisma, configService) {
+    constructor(prisma, configService, settingsService) {
         this.prisma = prisma;
         this.configService = configService;
-        const apiKey = this.configService.get("GEMINI_API_KEY");
-        if (!apiKey) {
-            throw new Error("GEMINI_API_KEY is required");
-        }
-        this.ai = new genai_1.GoogleGenAI({ apiKey });
+        this.settingsService = settingsService;
     }
     async generateOptimizedPrompt(data, clerkId) {
         console.log("🚀 ~ PromptsService ~ generateOptimizedPrompt ~ clerkId:", clerkId);
@@ -118,11 +115,16 @@ let PromptsService = class PromptsService {
                 throw new common_1.BadRequestException("No valid content to process");
             }
             console.log("🚀 Final parts for Gemini:", JSON.stringify(parts, null, 2));
+            const userApiKey = await this.settingsService.getUserApiKey(clerkId);
+            if (!userApiKey) {
+                throw new common_1.BadRequestException("No Gemini API key configured. Please add your API key in settings.");
+            }
+            const ai = new genai_1.GoogleGenAI({ apiKey: userApiKey });
             const startTime = Date.now();
             let response;
             try {
-                response = await this.ai.models.generateContent({
-                    model: "gemini-2.5-pro",
+                response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash",
                     contents: [
                         {
                             role: "user",
@@ -461,6 +463,7 @@ exports.PromptsService = PromptsService;
 exports.PromptsService = PromptsService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        settings_service_1.SettingsService])
 ], PromptsService);
 //# sourceMappingURL=prompts.service.js.map
