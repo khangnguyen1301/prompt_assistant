@@ -15,16 +15,13 @@ const config_1 = require("@nestjs/config");
 const genai_1 = require("@google/genai");
 const prisma_service_1 = require("../prisma/prisma.service");
 const cloudinary_service_1 = require("./cloudinary.service");
+const settings_service_1 = require("../settings/settings.service");
 let FilesService = class FilesService {
-    constructor(prisma, configService, cloudinaryService) {
+    constructor(prisma, configService, cloudinaryService, settingsService) {
         this.prisma = prisma;
         this.configService = configService;
         this.cloudinaryService = cloudinaryService;
-        const apiKey = this.configService.get("GEMINI_API_KEY");
-        if (!apiKey) {
-            throw new Error("GEMINI_API_KEY is required");
-        }
-        this.ai = new genai_1.GoogleGenAI({ apiKey });
+        this.settingsService = settingsService;
     }
     async uploadFile(fileData, clerkId) {
         try {
@@ -34,6 +31,11 @@ let FilesService = class FilesService {
             if (!user) {
                 throw new common_1.BadRequestException("User not found");
             }
+            const userApiKey = await this.settingsService.getUserApiKey(user.id);
+            if (!userApiKey) {
+                throw new common_1.BadRequestException("No Gemini API key configured. Please add your API key in settings.");
+            }
+            this.ai = new genai_1.GoogleGenAI({ apiKey: userApiKey });
             const maxSize = 20 * 1024 * 1024;
             if (fileData.file.length > maxSize) {
                 throw new common_1.BadRequestException("File size exceeds 20MB limit");
@@ -365,6 +367,7 @@ exports.FilesService = FilesService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         config_1.ConfigService,
-        cloudinary_service_1.CloudinaryService])
+        cloudinary_service_1.CloudinaryService,
+        settings_service_1.SettingsService])
 ], FilesService);
 //# sourceMappingURL=files.service.js.map

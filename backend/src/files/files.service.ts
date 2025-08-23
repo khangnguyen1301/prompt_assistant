@@ -7,6 +7,7 @@ import { ConfigService } from "@nestjs/config";
 import { GoogleGenAI } from "@google/genai";
 import { PrismaService } from "../prisma/prisma.service";
 import { CloudinaryService } from "./cloudinary.service";
+import { SettingsService } from "@/settings/settings.service";
 
 export interface UploadedFile {
   id: string;
@@ -59,15 +60,9 @@ export class FilesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
-    private readonly cloudinaryService: CloudinaryService
-  ) {
-    const apiKey = this.configService.get<string>("GEMINI_API_KEY");
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is required");
-    }
-
-    this.ai = new GoogleGenAI({ apiKey });
-  }
+    private readonly cloudinaryService: CloudinaryService,
+    private readonly settingsService: SettingsService
+  ) {}
 
   /**
    * Upload file to both Cloudinary and Gemini Files API
@@ -88,6 +83,17 @@ export class FilesService {
       if (!user) {
         throw new BadRequestException("User not found");
       }
+      // Get user's API key from database
+      const userApiKey = await this.settingsService.getUserApiKey(user.id);
+
+      if (!userApiKey) {
+        throw new BadRequestException(
+          "No Gemini API key configured. Please add your API key in settings."
+        );
+      }
+
+      // Create AI instance with user's API key
+      this.ai = new GoogleGenAI({ apiKey: userApiKey });
 
       // Validate file size (max 20MB for Gemini Files API)
       const maxSize = 20 * 1024 * 1024; // 20MB

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
-import { Sidebar } from "./sidebar";
+import Sidebar from "./sidebar";
 import { ChatArea } from "./chat-area";
 import { useConversations } from "@/hooks/useConversations";
 import { useMessages } from "@/hooks/useMessages";
@@ -303,18 +303,37 @@ export function ChatLayout() {
     }
   };
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar
-        conversations={conversations}
-        currentConversationId={currentConversationId}
-        onNewConversation={handleNewConversation}
-        onSelectConversation={handleSelectConversation}
-        onRenameConversation={handleRenameConversation}
-        onDeleteConversation={handleDeleteConversation}
-        loading={conversationsLoading}
-      />
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Desktop Sidebar - Hidden on mobile */}
+      <div className="hidden md:block">
+        <Sidebar
+          conversations={conversations}
+          currentConversationId={currentConversationId || undefined}
+          onNewConversation={handleNewConversation}
+          onSelectConversation={handleSelectConversation}
+          onRenameConversation={handleRenameConversation}
+          onDeleteConversation={handleDeleteConversation}
+          loading={conversationsLoading}
+          isMobile={false}
+        />
+      </div>
 
-      <div className="flex-1 flex flex-col">
+      {/* Mobile Sidebar - Overlay */}
+      <div className="md:hidden">
+        <Sidebar
+          conversations={conversations}
+          currentConversationId={currentConversationId || undefined}
+          onNewConversation={handleNewConversation}
+          onSelectConversation={handleSelectConversation}
+          onRenameConversation={handleRenameConversation}
+          onDeleteConversation={handleDeleteConversation}
+          loading={conversationsLoading}
+          isMobile={true}
+        />
+      </div>
+
+      {/* Main Chat Area - Responsive */}
+      <div className="flex-1 flex flex-col min-w-0">
         <ChatArea
           messages={messages}
           isLoading={isLoading}
