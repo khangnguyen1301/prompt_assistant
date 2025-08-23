@@ -63,7 +63,6 @@ export function ChatArea({
                     )}
                   >
                     <Settings size={20} />
-                    <span>Settings</span>
                   </div>
                 }
               />
@@ -75,7 +74,7 @@ export function ChatArea({
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* API Key Warning */}
-        {!apiKeyLoading && !apiKeyStatus.hasApiKey && <ApiKeyWarning />}
+        {!apiKeyLoading && !apiKeyStatus?.hasApiKey && <ApiKeyWarning />}
 
         {messagesLoading ? (
           // Show skeleton loading for message history
@@ -86,7 +85,7 @@ export function ChatArea({
             <MessageSkeleton isUser={false} />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
+          <div className="flex flex-col items-center justify-center h-full text-center mt-5">
             <div className="bg-blue-50 rounded-full p-6 mb-4">
               <Send className="w-12 h-12 text-blue-600" />
             </div>
@@ -139,7 +138,7 @@ export function ChatArea({
         onSendMessage={onSendMessage}
         isLoading={isLoading}
         isNewConversation={isNewConversation}
-        disabled={!apiKeyStatus.hasApiKey}
+        disabled={!apiKeyStatus?.hasApiKey}
       />
     </div>
   );

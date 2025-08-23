@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { AlertCircle, Settings } from "lucide-react";
+import { SettingsDialog } from "../settings/settings-dialog";
 
 interface ApiKeyWarningProps {
   className?: string;
@@ -18,12 +18,14 @@ export function ApiKeyWarning({ className = "" }: ApiKeyWarningProps) {
             You need to configure your Gemini API key to use the prompt
             optimization service. Get your free API key from Google AI Studio.
           </p>
-          <Link href="/settings">
-            <button className="inline-flex items-center gap-2 bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 transition-colors text-sm">
-              <Settings className="h-4 w-4" />
-              Configure API Key
-            </button>
-          </Link>
+          <SettingsDialog
+            trigger={
+              <button className="inline-flex items-center gap-2 bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 transition-colors text-sm">
+                <Settings className="h-4 w-4" />
+                Configure API Key
+              </button>
+            }
+          />
         </div>
       </div>
     </div>
