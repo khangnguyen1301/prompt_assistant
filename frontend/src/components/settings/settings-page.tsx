@@ -72,15 +72,15 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto p-3 max-w-2xl">
-      <div className="bg-white border-gray-200 rounded-lg shadow-sm">
-        <div className="border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2 mb-2">
-            <Key className="h-5 w-5 text-gray-600" />
-            <h2 className="text-gray-600 text-xl font-semibold">
+            <Key className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <h2 className="text-gray-600 dark:text-gray-300 text-xl font-semibold">
               Gemini API Key
             </h2>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Configure your personal Google Gemini API key to use the prompt
             optimization service.
           </p>
@@ -96,26 +96,26 @@ export function SettingsPage() {
 
           {/* Error State */}
           {statusError && (
-            <div className="p-3 rounded-md bg-red-50 border border-red-200">
-              <p className="text-sm text-red-700">{statusError}</p>
+            <div className="p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <p className="text-sm text-red-700 dark:text-red-400">{statusError}</p>
             </div>
           )}
 
           {/* Current Status */}
           {!statusLoading && status && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Current Status
               </label>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                 {status.hasApiKey ? (
                   <>
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-green-700">
+                    <span className="text-sm text-green-700 dark:text-green-400">
                       API key configured
                     </span>
                     {status.lastValidated && (
-                      <span className="text-xs text-gray-500 ml-auto">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
                         Last updated:{" "}
                         {new Date(status.lastValidated).toLocaleString()}
                       </span>
@@ -124,7 +124,7 @@ export function SettingsPage() {
                 ) : (
                   <>
                     <AlertCircle className="h-4 w-4 text-amber-500" />
-                    <span className="text-sm text-amber-700">
+                    <span className="text-sm text-amber-700 dark:text-amber-400">
                       No API key configured
                     </span>
                   </>
@@ -139,7 +139,7 @@ export function SettingsPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="apiKey"
-                  className="text-sm font-medium text-gray-700"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   {status?.hasApiKey ? "Update API Key" : "Enter API Key"}
                 </label>
@@ -149,9 +149,9 @@ export function SettingsPage() {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="AIza..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
                 />
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <input
                     type="checkbox"
                     id="showApiKey"
@@ -181,7 +181,7 @@ export function SettingsPage() {
                     type="button"
                     onClick={handleValidate}
                     disabled={validating}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {validating ? "Validating..." : "Test"}
                   </button>
@@ -192,17 +192,17 @@ export function SettingsPage() {
 
           {/* Get API Key Instructions */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               How to get your API key:
             </label>
-            <div className="p-4 rounded-lg bg-blue-50 text-sm space-y-2 text-black">
+            <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-sm space-y-2 text-black dark:text-gray-300">
               <p>
                 1. Go to{" "}
                 <a
                   href="https://aistudio.google.com/apikey"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                  className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
                 >
                   Google AI Studio <ExternalLink className="h-3 w-3" />
                 </a>
@@ -210,7 +210,7 @@ export function SettingsPage() {
               <p>2. Sign in with your Google account</p>
               <p>3. Click "Create API Key" and select a project</p>
               <p>4. Copy the generated API key and paste it above</p>
-              <p className="text-blue-700 font-medium">
+              <p className="text-blue-700 dark:text-blue-300 font-medium">
                 ⚠️ Keep your API key secure and never share it publicly.
               </p>
             </div>
@@ -221,13 +221,15 @@ export function SettingsPage() {
             <div
               className={`p-3 rounded-md ${
                 message.type === "success"
-                  ? "bg-green-50 border border-green-200"
-                  : "bg-red-50 border border-red-200"
+                  ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
+                  : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
               }`}
             >
               <p
                 className={`text-sm ${
-                  message.type === "success" ? "text-green-700" : "text-red-700"
+                  message.type === "success" 
+                    ? "text-green-700 dark:text-green-400" 
+                    : "text-red-700 dark:text-red-400"
                 }`}
               >
                 {message.text}

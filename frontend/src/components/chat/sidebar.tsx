@@ -52,19 +52,19 @@ export function Sidebar({
   return (
     <div
       className={cn(
-        "relative flex flex-col bg-gray-900 text-white transition-all duration-300",
+        "relative flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700 transition-all duration-300",
         isCollapsed ? "w-16" : "w-72"
       )}
     >
       {/* Header */}
-      <div className="p-2 border-b border-gray-700">
+      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <Zap className="w-4 h-4 text-white" />
               </div>
-              <h1 className="text-lg font-semibold text-white">
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Prompt Assistant
               </h1>
             </div>
@@ -73,7 +73,7 @@ export function Sidebar({
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className={cn(
-              " flex items-center p-3 hover:bg-gray-700 rounded-lg transition-colors",
+              " flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors",
               isCollapsed ? "w-100" : ""
             )}
           >
@@ -87,7 +87,7 @@ export function Sidebar({
         <button
           onClick={onNewConversation}
           className={cn(
-            "mb-3 w-full flex items-center gap-3 p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors",
+            "mb-3 w-full flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors",
             isCollapsed ? "w-100" : ""
           )}
         >
@@ -111,7 +111,7 @@ export function Sidebar({
           {" "}
           {/* Add space-y-1 here and remove from space-y-2 below */}
           {!isCollapsed && (
-            <h2 className="text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
+            <h2 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
               <History size={16} />
               Recent Conversations
             </h2>
@@ -122,12 +122,12 @@ export function Sidebar({
             {loading ? (
               <div className="animate-pulse space-y-2">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-gray-700 rounded-lg"></div>
+                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
                 ))}
               </div>
             ) : conversations.length === 0 ? (
               !isCollapsed && (
-                <div className="text-sm text-gray-500 text-center py-8">
+                <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
                   No conversations yet.
                   <br />
                   Start a new one!
@@ -141,8 +141,8 @@ export function Sidebar({
                   className={cn(
                     "w-full group relative flex items-center rounded-lg transition-colors overflow-hidden", // Add overflow-hidden
                     currentConversationId === conversation?.id
-                      ? "bg-blue-600"
-                      : "hover:bg-gray-700"
+                      ? "bg-blue-600 dark:bg-blue-500"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   )}
                 >
                   <button
@@ -151,7 +151,7 @@ export function Sidebar({
                       "flex-1 text-left p-3 transition-colors min-w-0", // Add flex-1 and min-w-0 for proper text truncation
                       currentConversationId === conversation?.id
                         ? "text-white"
-                        : "text-gray-300",
+                        : "text-gray-700 dark:text-gray-300",
                       isCollapsed && "flex justify-center"
                     )}
                   >
@@ -164,7 +164,7 @@ export function Sidebar({
                         <div className="font-medium truncate">
                           {conversation?.title}
                         </div>
-                        <div className="text-[11px] text-gray-400 mt-1 truncate">
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 truncate">
                           {" "}
                           {/* Add truncate here too */}
                           {conversation?.messageCount} messages •{" "}
@@ -192,14 +192,14 @@ export function Sidebar({
           </div>
         </div>
         {/* Footer */}
-        <div className="w-full absolute bottom-0 left-0 p-2 border-t border-gray-700 bg-gray-800">
+        <div className="w-full absolute bottom-0 left-0 p-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div
             className={cn(
               "flex items-center gap-3",
               isCollapsed && "justify-center"
             )}
           >
-            <div className="flex items-center justify-between gap-2 flex-1 cursor-pointer hover:bg-gray-700 rounded-lg p-2 transition-colors">
+            <div className="flex items-center justify-between gap-2 flex-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2 transition-colors">
               <div className="flex items-center gap-2">
                 <UserButton
                   appearance={{
@@ -211,10 +211,10 @@ export function Sidebar({
                 />
                 {!isCollapsed && (
                   <div onClick={!isCollapsed ? handleUserInfoClick : undefined}>
-                    <div className="text-sm font-medium truncate">
+                    <div className="text-sm font-medium truncate text-gray-900 dark:text-white">
                       {user?.fullName || user?.firstName || "User"}
                     </div>
-                    <div className="text-xs text-gray-400 truncate">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {user?.emailAddresses?.[0]?.emailAddress || "No email"}
                     </div>
                   </div>
