@@ -223,35 +223,37 @@ export function ChatInput({
     textareaRef.current?.focus();
   };
 
+  console.log(uploadedFiles);
+
   return (
-    <div className="border-gray-200 dark:border-gray-700 ">
+    <div className="border-gray-200 dark:border-gray-700">
       {/* Example prompts (show when input is empty, it's a new conversation, and examples are not closed) */}
       {!message && isNewConversation && showExamples && (
-        <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-3">
+        <div className="p-3 md:p-4 border-b border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-2 md:mb-3">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-yellow-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 flex-shrink-0" />
+              <span className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
                 Try these examples:
               </span>
             </div>
             <button
               onClick={() => setShowExamples(false)}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors flex-shrink-0"
               title="Close examples"
             >
-              <X className="w-4 h-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />
+              <X className="w-3 h-3 md:w-4 md:h-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
             {examplePrompts.map((example, index) => (
               <button
                 key={index}
                 onClick={() => handleExampleClick(example)}
-                className="text-left p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors group"
+                className="text-left p-2 md:p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors group"
                 disabled={disabled || isLoading}
               >
-                <div className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-400">
+                <div className="text-xs md:text-sm text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-400">
                   {example}
                 </div>
               </button>
@@ -261,27 +263,27 @@ export function ChatInput({
       )}
 
       {/* Input form */}
-      <div className="pb-2 bg-white dark:bg-gray-900 rounded-t-2xl ">
+      <div className="pb-2 bg-white dark:bg-gray-900 rounded-t-2xl">
         {/* File previews */}
         {(images.length > 0 || uploadedFiles.length > 0) && (
-          <div className="mb-4">
+          <div className="mb-3 md:mb-4 px-2 md:px-0">
             {/* Legacy images */}
             {images.length > 0 && (
-              <div className="mb-3">
-                <div className="flex flex-wrap gap-2">
+              <div className="mb-2 md:mb-3">
+                <div className="flex flex-wrap gap-1 md:gap-2">
                   {images.map((image, index) => (
                     <div key={index} className="relative group">
                       <img
                         src={`data:image/jpeg;base64,${image}`}
                         alt={`Upload ${index + 1}`}
-                        className="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                        className="w-12 h-12 md:w-16 md:h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
                       />
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                        className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-2 h-2 md:w-3 md:h-3" />
                       </button>
                     </div>
                   ))}
@@ -291,26 +293,24 @@ export function ChatInput({
 
             {/* Uploaded files */}
             {uploadedFiles.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="mt-2 flex flex-wrap gap-1 md:gap-2">
                 {uploadedFiles.map((file, index) => (
                   <div
                     key={file.id}
-                    className="relative group flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg"
+                    className="relative group flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg"
                   >
-                    {file.mimeType.startsWith("image/") ? (
-                      <Image className="w-4 h-4 text-blue-500" />
-                    ) : (
-                      <Paperclip className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    )}
-                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-32">
+                    <span className="text-xs md:text-sm text-gray-700 dark:text-gray-300 truncate max-w-20 md:max-w-32">
                       {file.displayName}
                     </span>
+                    <div>
+                      <img src={file.cloudinarySecureUrl} />
+                    </div>
                     <button
                       type="button"
                       onClick={() => removeUploadedFile(index)}
-                      className="w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                      className="w-3 h-3 md:w-4 md:h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-2 h-2 md:w-3 md:h-3" />
                     </button>
                   </div>
                 ))}
@@ -321,19 +321,19 @@ export function ChatInput({
 
         {/* Uploading indicator */}
         {uploadingFiles.size > 0 && (
-          <div className="mb-4 flex items-center gap-2 text-sm text-blue-500 dark:text-blue-400">
-            <Loader2 className="w-4 h-4 animate-spin" />
+          <div className="mb-3 md:mb-4 flex items-center gap-2 text-xs md:text-sm text-blue-500 dark:text-blue-400 px-2 md:px-0">
+            <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin" />
             <span>Uploading {uploadingFiles.size} file(s)...</span>
           </div>
         )}
 
         <form
           onSubmit={handleSubmit}
-          className="w-full flex items-center justify-center"
+          className="w-full flex items-center justify-center px-2 md:px-0"
         >
-          <div className="relative w-[800px]">
+          <div className="relative w-full max-w-4xl">
             {/* Input container with rounded border like Claude */}
-            <div className="flex items-end flex-col gap-2 p-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-700 focus-within:border-blue-500 dark:focus-within:border-blue-400 transition-colors">
+            <div className="flex items-end flex-col gap-2 p-2 md:p-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-700 focus-within:border-blue-500 dark:focus-within:border-blue-400 transition-colors">
               {/* Textarea */}
               <textarea
                 ref={textareaRef}
@@ -349,21 +349,21 @@ export function ChatInput({
                 }
                 disabled={disabled || isLoading}
                 rows={2}
-                className="w-full flex-1 bg-transparent border-0 resize-none outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 min-h-[24px] max-h-[200px] py-1 hidden-scrollbar"
+                className="w-full flex-1 bg-transparent border-0 resize-none outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 min-h-[24px] max-h-[200px] py-1 hidden-scrollbar text-sm md:text-base"
                 style={{
                   lineHeight: "1.5",
                 }}
               />
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 md:gap-2 w-full justify-end">
                 {/* File upload button */}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={disabled || isLoading}
-                  className="flex-shrink-0 p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+                  className="flex-shrink-0 p-1.5 md:p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
                   title="Attach files"
                 >
-                  <Paperclip className="w-5 h-5" />
+                  <Paperclip className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
 
                 {/* Send button */}
@@ -377,13 +377,13 @@ export function ChatInput({
                     disabled ||
                     uploadingFiles.size > 0
                   }
-                  className="flex-shrink-0 p-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+                  className="flex-shrink-0 p-1.5 md:p-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
                   title="Send message"
                 >
                   {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                   ) : (
-                    <Send className="w-5 h-5" />
+                    <Send className="w-4 h-4 md:w-5 md:h-5" />
                   )}
                 </button>
               </div>

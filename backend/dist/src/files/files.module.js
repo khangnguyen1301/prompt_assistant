@@ -13,6 +13,7 @@ const files_controller_1 = require("./files.controller");
 const files_service_1 = require("./files.service");
 const cloudinary_service_1 = require("./cloudinary.service");
 const prisma_module_1 = require("../prisma/prisma.module");
+const settings_module_1 = require("../settings/settings.module");
 let FilesModule = class FilesModule {
 };
 exports.FilesModule = FilesModule;
@@ -25,6 +26,7 @@ exports.FilesModule = FilesModule = __decorate([
                     fileSize: 20 * 1024 * 1024,
                 },
             }),
+            settings_module_1.SettingsModule,
         ],
         controllers: [files_controller_1.FilesController],
         providers: [files_service_1.FilesService, cloudinary_service_1.CloudinaryService],
