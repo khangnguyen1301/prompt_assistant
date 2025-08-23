@@ -12,6 +12,7 @@ import { ChatInput } from "./chat-input";
 import { MessageBubble } from "./message-bubble";
 import { MessageSkeleton } from "@/components/ui/message-skeleton";
 import { cn } from "@/lib/utils";
+import { useSidebarStore } from "@/stores";
 
 interface ChatAreaProps {
   messages: Message[];
@@ -34,6 +35,8 @@ export function ChatArea({
 }: ChatAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { status: apiKeyStatus, loading: apiKeyLoading } = useApiKeyStatus();
+  const { isCollapsed } = useSidebarStore();
+  console.log("🚀 ~ ChatArea ~ isCollapsed:", isCollapsed);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -41,7 +44,7 @@ export function ChatArea({
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900 transition-colors">
+    <div className="relative flex flex-col h-full bg-white dark:bg-gray-900 transition-colors">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 transition-colors">
         <div className="flex items-center justify-between">
@@ -79,7 +82,13 @@ export function ChatArea({
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
+      <div
+        className={`flex-1 overflow-y-auto pt-4 pb-36 space-y-4 bg-gray-50 dark:bg-gray-900`}
+        style={{
+          paddingLeft: isCollapsed ? "340px" : "224px",
+          paddingRight: isCollapsed ? "340px" : "224px",
+        }}
+      >
         {/* API Key Warning */}
         {!apiKeyLoading && !apiKeyStatus?.hasApiKey && <ApiKeyWarning />}
 
@@ -141,12 +150,14 @@ export function ChatArea({
       </div>
 
       {/* Chat Input */}
-      <ChatInput
-        onSendMessage={onSendMessage}
-        isLoading={isLoading}
-        isNewConversation={isNewConversation}
-        disabled={!apiKeyStatus?.hasApiKey}
-      />
+      <div className="absolute bottom-0 left-[50%] translate-x-[-50%]">
+        <ChatInput
+          onSendMessage={onSendMessage}
+          isLoading={isLoading}
+          isNewConversation={isNewConversation}
+          disabled={!apiKeyStatus?.hasApiKey}
+        />
+      </div>
     </div>
   );
 }

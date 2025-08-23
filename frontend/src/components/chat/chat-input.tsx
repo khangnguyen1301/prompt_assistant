@@ -224,7 +224,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <div className="border-gray-200 dark:border-gray-700 ">
       {/* Example prompts (show when input is empty, it's a new conversation, and examples are not closed) */}
       {!message && isNewConversation && showExamples && (
         <div className="p-4 border-b border-gray-100 dark:border-gray-700">
@@ -261,176 +261,146 @@ export function ChatInput({
       )}
 
       {/* Input form */}
-      <form onSubmit={handleSubmit} className="p-4">
-        {/* Image preview (legacy base64 images) */}
-        {images.length > 0 && (
-          <div className="mb-3">
-            <p className="text-xs text-gray-500 mb-2">
-              Legacy images (base64):
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {images.map((image, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={`data:image/jpeg;base64,${image}`}
-                    alt={`Upload ${index + 1}`}
-                    className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
+      <div className="pb-2 bg-white dark:bg-gray-900 rounded-t-2xl ">
+        {/* File previews */}
+        {(images.length > 0 || uploadedFiles.length > 0) && (
+          <div className="mb-4">
+            {/* Legacy images */}
+            {images.length > 0 && (
+              <div className="mb-3">
+                <div className="flex flex-wrap gap-2">
+                  {images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={`data:image/jpeg;base64,${image}`}
+                        alt={`Upload ${index + 1}`}
+                        className="w-16 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </div>
+            )}
 
-        {/* Uploaded files preview */}
-        {uploadedFiles.length > 0 && (
-          <div className="mb-3">
-            <p className="text-xs text-gray-500 mb-2">Uploaded files:</p>
-            <div className="flex flex-wrap gap-2">
-              {uploadedFiles.map((file, index) => (
-                <div
-                  key={file.id}
-                  className="relative group p-2 border border-gray-200 rounded-lg bg-gray-50"
-                >
-                  <div className="flex items-center justify-between gap-2">
+            {/* Uploaded files */}
+            {uploadedFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {uploadedFiles.map((file, index) => (
+                  <div
+                    key={file.id}
+                    className="relative group flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg"
+                  >
                     {file.mimeType.startsWith("image/") ? (
                       <Image className="w-4 h-4 text-blue-500" />
                     ) : (
-                      <Paperclip className="w-4 h-4 text-gray-500" />
+                      <Paperclip className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     )}
-                    <span className="text-sm text-gray-700 truncate max-w-32">
+                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate max-w-32">
                       {file.displayName}
                     </span>
                     <button
                       type="button"
                       onClick={() => removeUploadedFile(index)}
-                      className="w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                      title="Delete file from server"
+                      className="w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {file.mimeType} • {Math.round(file.sizeBytes / 1024)}KB
-                  </div>
-                  {/* Image preview for uploaded images */}
-                  {file.mimeType.startsWith("image/") &&
-                    file.cloudinarySecureUrl && (
-                      <div className="mt-2">
-                        <img
-                          src={file.cloudinarySecureUrl}
-                          alt={file.displayName}
-                          className="w-20 h-20 object-cover rounded border"
-                        />
-                      </div>
-                    )}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Uploading files indicator */}
+        {/* Uploading indicator */}
         {uploadingFiles.size > 0 && (
-          <div className="mb-3">
-            <p className="text-xs text-blue-500 mb-2 flex items-center gap-1">
-              <Loader2 className="w-3 h-3 animate-spin" />
-              Uploading {uploadingFiles.size} file(s)...
-            </p>
+          <div className="mb-4 flex items-center gap-2 text-sm text-blue-500 dark:text-blue-400">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Uploading {uploadingFiles.size} file(s)...</span>
           </div>
         )}
 
-        <div className="relative flex items-center gap-3">
-          <div className="flex-1 relative flex items-center">
-            <textarea
-              ref={textareaRef}
-              name="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onPaste={handlePaste}
-              placeholder={
-                images.length > 0 || uploadedFiles.length > 0
-                  ? "Add a description for your files..."
-                  : "Describe the prompt you want to optimize..."
-              }
-              disabled={disabled || isLoading}
-              rows={1}
-              className="w-full px-4 py-3 pr-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed hidden-scrollbar placeholder-gray-500 dark:placeholder-gray-400"
-              style={{ minHeight: "52px", maxHeight: "200px" }}
-            />
-
-            <div className="absolute bottom-[6px] right-2 flex items-center gap-1">
-              {/* File upload button */}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={disabled || isLoading}
-                className="flex items-center justify-center w-10 h-10 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Select files"
-              >
-                <Paperclip className="w-5 h-5" />
-              </button>
-
-              {/* Send button */}
-              <button
-                type="submit"
-                disabled={
-                  (!message.trim() &&
-                    images.length === 0 &&
-                    uploadedFiles.length === 0) ||
-                  isLoading ||
-                  disabled ||
-                  uploadingFiles.size > 0 // Disable while uploading
+        <form
+          onSubmit={handleSubmit}
+          className="w-full flex items-center justify-center"
+        >
+          <div className="relative w-[800px]">
+            {/* Input container with rounded border like Claude */}
+            <div className="flex items-end flex-col gap-2 p-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-700 focus-within:border-blue-500 dark:focus-within:border-blue-400 transition-colors">
+              {/* Textarea */}
+              <textarea
+                ref={textareaRef}
+                name="message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
+                placeholder={
+                  images.length > 0 || uploadedFiles.length > 0
+                    ? "Add a description for your files..."
+                    : "Describe the prompt you want to optimize..."
                 }
-                className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Send className="w-5 h-5" />
-                )}
-              </button>
+                disabled={disabled || isLoading}
+                rows={2}
+                className="w-full flex-1 bg-transparent border-0 resize-none outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 min-h-[24px] max-h-[200px] py-1 hidden-scrollbar"
+                style={{
+                  lineHeight: "1.5",
+                }}
+              />
+              <div className="flex items-center gap-2">
+                {/* File upload button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={disabled || isLoading}
+                  className="flex-shrink-0 p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+                  title="Attach files"
+                >
+                  <Paperclip className="w-5 h-5" />
+                </button>
+
+                {/* Send button */}
+                <button
+                  type="submit"
+                  disabled={
+                    (!message.trim() &&
+                      images.length === 0 &&
+                      uploadedFiles.length === 0) ||
+                    isLoading ||
+                    disabled ||
+                    uploadingFiles.size > 0
+                  }
+                  className="flex-shrink-0 p-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+                  title="Send message"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,video/*,audio/*,.pdf,.txt,.csv,.json,.docx,.xlsx"
-          multiple
-          className="hidden"
-          onChange={(e) => handleFileSelection(e.target.files)}
-        />
-
-        {/* Optimization info */}
-        <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-          <Zap className="w-3 h-3" />
-          <span>
-            Your prompt will be optimized for clarity, structure, and
-            effectiveness. Files are uploaded to Gemini Files API for better
-            performance.
-          </span>
-        </div>
-
-        {/* File upload instructions */}
-        <div className="flex items-center gap-2  mt-1 text-xs text-gray-500">
-          <Zap className="w-3 h-3" />
-          <span>
-            Tip: You can paste images directly (Ctrl+V) or click the paperclip
-            icon to upload files (max 20MB each)
-          </span>
-        </div>
-      </form>
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*,audio/*,.pdf,.txt,.csv,.json,.docx,.xlsx"
+            multiple
+            className="hidden"
+            onChange={(e) => handleFileSelection(e.target.files)}
+          />
+        </form>
+      </div>
     </div>
   );
 }

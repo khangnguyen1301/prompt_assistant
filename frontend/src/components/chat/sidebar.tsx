@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import {
@@ -17,6 +16,7 @@ import { ConversationMenu } from "./conversation-menu";
 import { SearchModal } from "./search-modal";
 import { cn } from "@/lib/utils";
 import { useApiKeyStatus } from "@/hooks/useApiKeyStatus";
+import { useSidebarStore } from "@/stores";
 
 interface SidebarProps {
   conversations: Conversation[];
@@ -37,7 +37,8 @@ export function Sidebar({
   onDeleteConversation,
   loading = false,
 }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isCollapsed, toggleCollapse } = useSidebarStore();
+  console.log("🚀 ~ Sidebar ~ isCollapsed:", isCollapsed);
   const { user } = useUser();
   const { status: apiKeyStatus, loading: apiKeyLoading } = useApiKeyStatus();
   // Function to handle user info click (same as UserButton click behavior)
@@ -71,7 +72,7 @@ export function Sidebar({
           )}
           {/* Collapse Button */}
           <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={toggleCollapse}
             className={cn(
               " flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors",
               isCollapsed ? "w-100" : ""
