@@ -40,7 +40,10 @@ export function SettingsDialog({
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-2">
-                <Settings size={20} className="text-gray-500 dark:text-gray-400" />
+                <Settings
+                  size={20}
+                  className="text-gray-500 dark:text-gray-400"
+                />
                 <Dialog.Title className="text-lg font-semibold text-black dark:text-white">
                   Settings
                 </Dialog.Title>

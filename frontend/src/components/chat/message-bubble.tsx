@@ -112,7 +112,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               <Zap className="w-4 h-4 text-white" />
             </div>
             <div>
-              <div className="font-medium text-gray-900 dark:text-gray-100">Optimized Prompt</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
+                Optimized Prompt
+              </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
                 {metadata?.processingTime && (
                   <span>⚡ {metadata.processingTime / 1000}s</span>
@@ -164,7 +166,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg p-3 font-mono text-sm">
                   <TypingText
-                    text={optimizedPrompt.rawText}
+                    text={optimizedPrompt.rawText || ""}
                     speed={5}
                     delay={2000}
                     className="whitespace-pre-wrap text-gray-800 dark:text-gray-200"
@@ -178,7 +180,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           // Fallback for simple message content
           <div className="p-4">
             <TypingText
-              text={message.content}
+              text={message.content || ""}
               speed={3}
               delay={0}
               className="whitespace-pre-wrap break-words text-gray-800 dark:text-gray-200"

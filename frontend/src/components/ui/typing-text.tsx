@@ -13,7 +13,7 @@ interface TypingTextProps {
 
 export function TypingText({
   text,
-  speed = 5,
+  speed = 50,
   delay = 500,
   className = "",
   showCursor = true,

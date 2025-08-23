@@ -13,7 +13,9 @@ export function ApiKeyWarning({ className = "" }: ApiKeyWarningProps) {
       <div className="flex items-start gap-3">
         <AlertCircle className="h-5 w-5 text-amber-500 dark:text-amber-400 mt-0.5 flex-shrink-0" />
         <div className="flex-1">
-          <h3 className="text-amber-800 dark:text-amber-300 font-medium mb-1">API Key Required</h3>
+          <h3 className="text-amber-800 dark:text-amber-300 font-medium mb-1">
+            API Key Required
+          </h3>
           <p className="text-amber-700 dark:text-amber-400 text-sm mb-3">
             You need to configure your Gemini API key to use the prompt
             optimization service. Get your free API key from Google AI Studio.

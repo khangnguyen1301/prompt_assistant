@@ -97,7 +97,9 @@ export function SettingsPage() {
           {/* Error State */}
           {statusError && (
             <div className="p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <p className="text-sm text-red-700 dark:text-red-400">{statusError}</p>
+              <p className="text-sm text-red-700 dark:text-red-400">
+                {statusError}
+              </p>
             </div>
           )}
 
@@ -227,8 +229,8 @@ export function SettingsPage() {
             >
               <p
                 className={`text-sm ${
-                  message.type === "success" 
-                    ? "text-green-700 dark:text-green-400" 
+                  message.type === "success"
+                    ? "text-green-700 dark:text-green-400"
                     : "text-red-700 dark:text-red-400"
                 }`}
               >
