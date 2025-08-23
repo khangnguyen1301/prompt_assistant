@@ -33,7 +33,15 @@ export interface Message {
   };
 }
 
-export function useMessages(conversationId: string | null) {
+interface useMessagesProps {
+  conversationId: string | null;
+  isNewConversation?: boolean;
+}
+
+export function useMessages({
+  conversationId,
+  isNewConversation = false,
+}: useMessagesProps) {
   const { getToken, isLoaded, userId } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -76,7 +84,7 @@ export function useMessages(conversationId: string | null) {
   };
 
   useEffect(() => {
-    fetchMessages();
+    !isNewConversation && fetchMessages();
   }, [conversationId, isLoaded, userId]);
 
   const sendMessage = async (
