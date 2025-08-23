@@ -122,7 +122,10 @@ export function Sidebar({
             {loading ? (
               <div className="animate-pulse space-y-2">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                  <div
+                    key={i}
+                    className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"
+                  ></div>
                 ))}
               </div>
             ) : conversations.length === 0 ? (

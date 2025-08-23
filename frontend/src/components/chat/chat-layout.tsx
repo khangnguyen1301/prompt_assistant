@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { Sidebar } from "./sidebar";
@@ -8,7 +8,6 @@ import { ChatArea } from "./chat-area";
 import { useConversations } from "@/hooks/useConversations";
 import { useMessages } from "@/hooks/useMessages";
 import { usePrompts } from "@/hooks/usePrompts";
-import { filesApiService } from "@/lib/files-api";
 
 export interface Conversation {
   id: string;
@@ -52,12 +51,11 @@ export interface Message {
 
 export function ChatLayout() {
   const { isLoaded, isSignedIn, user } = useUser();
-  const { getToken } = useAuth();
-
   const [currentConversationId, setCurrentConversationId] = useState<
     string | null
   >(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isNewConversation, setIsNewConversation] = useState<boolean>(false);
 
   // Use custom hooks for data management
   const {
@@ -148,9 +146,7 @@ export function ChatLayout() {
 
         conversationId = newConversation.id;
         setCurrentConversationId(conversationId);
-
-        // Give a moment for the conversation to be set
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        setIsNewConversation(true);
       }
 
       // Add user message immediately to UI
@@ -164,10 +160,10 @@ export function ChatLayout() {
       };
 
       addMessage(userMessage);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Send message to backend first to get the real messageId
-      const savedUserMessage = await sendMessage(
+      await sendMessage(
         content,
         conversationId || undefined,
         "USER",
