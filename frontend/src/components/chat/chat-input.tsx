@@ -423,9 +423,12 @@ export function ChatInput({
         </div>
 
         {/* File upload instructions */}
-        <div className="mt-1 text-xs text-gray-400">
-          💡 Tip: You can paste images directly (Ctrl+V) or click the paperclip
-          icon to upload files (max 20MB each)
+        <div className="flex items-center gap-2  mt-1 text-xs text-gray-500">
+          <Zap className="w-3 h-3" />
+          <span>
+            Tip: You can paste images directly (Ctrl+V) or click the paperclip
+            icon to upload files (max 20MB each)
+          </span>
         </div>
       </form>
     </div>

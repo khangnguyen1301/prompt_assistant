@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useApiKeyStore } from "@/stores/apiKeyStore";
 
 interface ApiKeyStatus {
   hasApiKey: boolean;
@@ -9,11 +10,17 @@ interface ApiKeyStatus {
 
 export function useApiKeyStatus() {
   const { getToken } = useAuth();
-  const [status, setStatus] = useState<ApiKeyStatus>({ hasApiKey: false });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    status,
+    isLoading,
+    error,
+    setStatus,
+    setLoading,
+    setError,
+    shouldRefetch,
+  } = useApiKeyStore();
 
-  const checkApiKeyStatus = async () => {
+  const checkApiKeyStatus = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -40,15 +47,18 @@ export function useApiKeyStatus() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken, setStatus, setLoading, setError]);
 
   useEffect(() => {
-    checkApiKeyStatus();
-  }, []);
+    // Only fetch if we should refetch (no data or stale data)
+    if (shouldRefetch()) {
+      checkApiKeyStatus();
+    }
+  }, [checkApiKeyStatus, shouldRefetch]);
 
   return {
     status,
-    loading,
+    loading: isLoading,
     error,
     refetch: checkApiKeyStatus,
   };
