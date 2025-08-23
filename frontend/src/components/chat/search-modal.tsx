@@ -80,7 +80,7 @@ export function SearchModal({
       <Dialog.Trigger asChild>
         <button
           className={cn(
-            "w-full flex items-center gap-3 p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors",
+            "w-full flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors",
             isCollapsed ? "w-100" : ""
           )}
         >

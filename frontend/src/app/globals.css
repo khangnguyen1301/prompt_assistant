@@ -15,9 +15,9 @@
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Thanh cuộn chính */
@@ -27,18 +27,31 @@ body {
 
 /* Nền của scrollbar */
 ::-webkit-scrollbar-track {
-  background: #0d1117; /* Màu nền cùng màu sidebar */
+  background: #f1f1f1; /* Light mode */
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0d1117; /* Dark mode */
 }
 
 /* Thanh trượt */
 ::-webkit-scrollbar-thumb {
-  background: #404a58; /* Màu hơi khác để thấy nhẹ */
+  background: #c1c1c1; /* Light mode */
+  border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #404a58; /* Dark mode */
   border-radius: 10px;
 }
 
 /* Hover khi rê chuột */
 ::-webkit-scrollbar-thumb:hover {
-  background: #21262d;
+  background: #a8a8a8; /* Light mode */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #21262d; /* Dark mode */
 }
 
 .hidden-scrollbar {

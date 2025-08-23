@@ -35,19 +35,19 @@ export function SettingsDialog({
 
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] z-50">
+        <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] z-50">
           <div className="flex flex-col h-full">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-2">
-                <Settings size={20} className="text-gray-500" />
-                <Dialog.Title className="text-lg font-semibold text-black">
+                <Settings size={20} className="text-gray-500 dark:text-gray-400" />
+                <Dialog.Title className="text-lg font-semibold text-black dark:text-white">
                   Settings
                 </Dialog.Title>
               </div>
               <Dialog.Close asChild>
-                <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                  <X size={20} className="text-gray-500" />
+                <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
+                  <X size={20} className="text-gray-500 dark:text-gray-400" />
                 </button>
               </Dialog.Close>
             </div>

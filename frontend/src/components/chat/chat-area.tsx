@@ -6,6 +6,8 @@ import { Message } from "./chat-layout";
 import { useApiKeyStatus } from "@/hooks/useApiKeyStatus";
 import { ApiKeyWarning } from "./api-key-warning";
 import { SettingsDialog } from "../settings/settings-dialog";
+import { DarkModeToggle } from "../ui/dark-mode-toggle";
+
 import { ChatInput } from "./chat-input";
 import { MessageBubble } from "./message-bubble";
 import { MessageSkeleton } from "@/components/ui/message-skeleton";
@@ -39,30 +41,35 @@ export function ChatArea({
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900 transition-colors">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 transition-colors">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Prompt Optimization Chat
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Transform your raw requests into optimized prompts
             </p>
           </div>
           <div className="flex items-center flex-col space-x-2">
-            <div className="flex items-center space-x-1"></div>
-            {/* Settings Button */}
-            <div className="mb-2">
+            <div className="flex items-center space-x-2">
+              {/* Dark Mode Toggle */}
+              <DarkModeToggle />
+
+              {/* Settings Button */}
               <SettingsDialog
                 trigger={
                   <div
                     className={cn(
-                      "flex items-center gap-3 p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors cursor-pointer"
+                      "flex items-center gap-3 p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
                     )}
                   >
-                    <Settings size={20} />
+                    <Settings
+                      size={20}
+                      className="text-gray-500 dark:text-gray-400"
+                    />
                   </div>
                 }
               />
@@ -72,7 +79,7 @@ export function ChatArea({
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
         {/* API Key Warning */}
         {!apiKeyLoading && !apiKeyStatus?.hasApiKey && <ApiKeyWarning />}
 
@@ -92,24 +99,24 @@ export function ChatArea({
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               Welcome to Prompt Assistant
             </h3>
-            <p className="text-gray-600 max-w-md mb-6">
+            <p className="text-gray-600 dark:text-gray-300 max-w-md mb-6">
               Start by typing your raw request or idea. I'll help you transform
               it into a well-structured, optimized prompt for AI systems.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h4 className="font-medium text-gray-900 mb-2">
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
                   Example Input:
                 </h4>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   "Help me write a blog post about climate change"
                 </p>
               </div>
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <h4 className="font-medium text-gray-900 mb-2">
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
                   Optimized Output:
                 </h4>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Structured prompt with goal, context, format, and constraints
                 </p>
               </div>

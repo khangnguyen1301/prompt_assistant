@@ -35,11 +35,13 @@ export function useTypingEffect(
 
     let i = 0;
     typingInterval = setInterval(() => {
-      setDisplayedText((prev) => prev + text[i]);
-      i++;
-      if (i >= text.length) {
-        clearInterval(typingInterval);
-        setIsTyping(false);
+      if (text[i]) {
+        setDisplayedText((prev) => prev + text[i]);
+        ++i;
+        if (i >= text.length) {
+          clearInterval(typingInterval);
+          setIsTyping(false);
+        }
       }
     }, speed); // Mặc định 5ms mỗi ký tự
 

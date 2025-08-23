@@ -224,23 +224,23 @@ export function ChatInput({
   };
 
   return (
-    <div className="border-t border-gray-200 bg-white">
+    <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
       {/* Example prompts (show when input is empty, it's a new conversation, and examples are not closed) */}
       {!message && isNewConversation && showExamples && (
-        <div className="p-4 border-b border-gray-100">
+        <div className="p-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-yellow-500" />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Try these examples:
               </span>
             </div>
             <button
               onClick={() => setShowExamples(false)}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
               title="Close examples"
             >
-              <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              <X className="w-4 h-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -248,10 +248,10 @@ export function ChatInput({
               <button
                 key={index}
                 onClick={() => handleExampleClick(example)}
-                className="text-left p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors group"
+                className="text-left p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors group"
                 disabled={disabled || isLoading}
               >
-                <div className="text-sm text-gray-700 group-hover:text-blue-700">
+                <div className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-400">
                   {example}
                 </div>
               </button>
@@ -363,7 +363,7 @@ export function ChatInput({
               }
               disabled={disabled || isLoading}
               rows={1}
-              className="w-full px-4 py-3 pr-20 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed text-black hidden-scrollbar"
+              className="w-full px-4 py-3 pr-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed hidden-scrollbar placeholder-gray-500 dark:placeholder-gray-400"
               style={{ minHeight: "52px", maxHeight: "200px" }}
             />
 
@@ -373,7 +373,7 @@ export function ChatInput({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={disabled || isLoading}
-                className="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center w-10 h-10 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Select files"
               >
                 <Paperclip className="w-5 h-5" />
