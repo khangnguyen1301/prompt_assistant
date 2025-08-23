@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 
 export interface Conversation {
@@ -12,10 +12,21 @@ export interface Conversation {
 export function useConversations() {
   const { getToken, isLoaded, userId } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  console.log("🚀 ~ useConversations ~ conversations:", conversations);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loadingRef = useRef(false);
 
-  const fetchConversations = async () => {
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const limit = 10; // Number of conversations per page
+
+  const fetchConversations = async (
+    pageNum: number = 1,
+    append: boolean = false
+  ) => {
     if (!isLoaded || !userId) return;
 
     setLoading(true);
@@ -24,7 +35,7 @@ export function useConversations() {
     try {
       const token = await getToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/conversations`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/conversations?page=${pageNum}&limit=${limit}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -38,18 +49,62 @@ export function useConversations() {
       }
 
       const data = await response.json();
-      setConversations(data.conversations || []);
+      const newConversations = data.conversations || [];
+      const total = data.pagination.total || 0;
+
+      setTotalCount(total);
+      setHasMore(pageNum * limit < total);
+
+      if (append) {
+        setConversations((prev) => [...prev, ...newConversations]);
+      } else {
+        setConversations(newConversations);
+      }
     } catch (err) {
       console.error("Error fetching conversations:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
+      loadingRef.current = false;
+    }
+  };
+
+  const loadMoreConversations = async () => {
+    console.log("🚀 ~ loadMoreConversations called", {
+      hasMore,
+      loading,
+      loadingRef: loadingRef.current,
+      page,
+    });
+
+    // Kiểm tra cả loading state và ref để tránh race condition
+    if (!hasMore || loading || loadingRef.current) {
+      console.log("⚠️ ~ loadMoreConversations aborted", {
+        hasMore,
+        loading,
+        loadingRef: loadingRef.current,
+      });
+      return;
+    }
+
+    // Set loading ref ngay lập tức để tránh duplicate calls
+    loadingRef.current = true;
+
+    const nextPage = page + 1;
+    console.log("📄 ~ loadMoreConversations fetching page:", nextPage);
+    setPage(nextPage);
+
+    try {
+      await fetchConversations(nextPage, true);
+    } finally {
+      // Reset loading ref sau khi hoàn thành
+      loadingRef.current = false;
     }
   };
 
   useEffect(() => {
-    fetchConversations();
-  }, [isLoaded, userId]);
+    fetchConversations(1, false);
+  }, []);
 
   const createConversation = async (title: string) => {
     if (!isLoaded || !userId) return null;
@@ -163,6 +218,9 @@ export function useConversations() {
     conversations,
     loading,
     error,
+    hasMore,
+    totalCount,
+    loadMoreConversations,
     fetchConversations,
     createConversation,
     updateConversation,

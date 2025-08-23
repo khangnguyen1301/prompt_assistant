@@ -229,7 +229,7 @@ export function ChatInput({
     <div className="border-gray-200 dark:border-gray-700">
       {/* Example prompts (show when input is empty, it's a new conversation, and examples are not closed) */}
       {!message && isNewConversation && showExamples && (
-        <div className="p-3 md:p-4 border-b border-gray-100 dark:border-gray-700">
+        <div className="mb-3 p-3 md:p-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-2 md:mb-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 flex-shrink-0" />
@@ -377,7 +377,7 @@ export function ChatInput({
                     disabled ||
                     uploadingFiles.size > 0
                   }
-                  className="flex-shrink-0 p-1.5 md:p-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+                  className="flex-shrink-0 p-1.5 md:p-2 bg-slate-500 hover:bg-slate-400 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
                   title="Send message"
                 >
                   {isLoading ? (

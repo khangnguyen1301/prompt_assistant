@@ -61,6 +61,8 @@ export function ChatLayout() {
   const {
     conversations,
     loading: conversationsLoading,
+    hasMore,
+    loadMoreConversations,
     createConversation,
     updateConversation,
     deleteConversation,
@@ -314,6 +316,8 @@ export function ChatLayout() {
           onRenameConversation={handleRenameConversation}
           onDeleteConversation={handleDeleteConversation}
           loading={conversationsLoading}
+          hasMore={hasMore}
+          onLoadMore={loadMoreConversations}
           isMobile={false}
         />
       </div>
@@ -328,6 +332,8 @@ export function ChatLayout() {
           onRenameConversation={handleRenameConversation}
           onDeleteConversation={handleDeleteConversation}
           loading={conversationsLoading}
+          hasMore={hasMore}
+          onLoadMore={loadMoreConversations}
           isMobile={true}
         />
       </div>
