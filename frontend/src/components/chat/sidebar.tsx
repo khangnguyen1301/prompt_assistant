@@ -1,14 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useUser, UserButton } from "@clerk/nextjs";
-import {
-  Plus,
-  Search,
-  MessageSquare,
-  History,
-  PanelLeft,
-  Zap,
-} from "lucide-react";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { Plus, MessageSquare, History, PanelLeft, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/stores/sidebarStore";
 import { useApiKeyStatus } from "@/hooks/useApiKeyStatus";
@@ -24,6 +18,8 @@ interface SidebarProps {
   onDeleteConversation: (id: string) => void;
   onRenameConversation: (id: string, newTitle: string) => void;
   loading?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
   isMobile?: boolean;
 }
 
@@ -35,12 +31,40 @@ export default function Sidebar({
   onDeleteConversation,
   onRenameConversation,
   loading = false,
+  hasMore = false,
+  onLoadMore,
   isMobile = false,
 }: SidebarProps) {
   const { user } = useUser();
   const { isCollapsed, toggleCollapse } = useSidebarStore();
   const { status: apiKeyStatus, loading: apiKeyLoading } = useApiKeyStatus();
   const [apiKeyStatusState, setApiKeyStatusState] = useState(false);
+  const loadMoreTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced loadMore function để tránh gọi 2 lần
+  const debouncedLoadMore = useCallback(() => {
+    if (loadMoreTimeoutRef.current) {
+      clearTimeout(loadMoreTimeoutRef.current);
+    }
+
+    loadMoreTimeoutRef.current = setTimeout(() => {
+      console.log("🚀 ~ debouncedLoadMore executing", {
+        isMobile,
+        hasMore,
+        loading,
+      });
+      if (onLoadMore) {
+        onLoadMore();
+      }
+    }, 100); // Debounce 100ms
+  }, [onLoadMore, isMobile, hasMore, loading]); // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (loadMoreTimeoutRef.current) {
+        clearTimeout(loadMoreTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     setApiKeyStatusState(!!apiKeyStatus?.hasApiKey);
@@ -106,85 +130,126 @@ export default function Sidebar({
       </div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto md:max-h-[calc(100vh-250px)] mb-3">
-        <div className="px-3 md:px-4 space-y-1">
+      <div className="flex-1 overflow-hidden max-h-[calc(100vh-200px)] md:overflow-y-auto md:max-h-[calc(100vh-250px)] mb-3">
+        <div className="px-3 md:pr-0 md:pl-2 space-y-1">
           {!isCollapsed && (
             <h2 className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 flex items-center gap-2">
               <History size={14} className="md:w-4 md:h-4" />
               Recent Conversations
             </h2>
           )}
-          <div className="space-y-1">
-            {loading ? (
-              <div className="animate-pulse space-y-1 md:space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="h-12 md:h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"
-                  ></div>
-                ))}
-              </div>
-            ) : conversations.length === 0 ? (
-              !isCollapsed && (
-                <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400 text-center py-6 md:py-8 px-2">
-                  No conversations yet.
-                  <br />
-                  Start a new one!
-                </div>
-              )
-            ) : (
-              !isCollapsed &&
-              conversations.map((conversation, index) => (
+          {loading && conversations.length === 0 ? (
+            <div className="animate-pulse space-y-1">
+              {Array.from({ length: 10 }).map((_, i) => (
                 <div
-                  key={conversation?.id || `conversation-${index}`}
-                  className={cn(
-                    "w-full group relative flex items-center rounded-lg transition-colors overflow-hidden",
-                    currentConversationId === conversation?.id
-                      ? "bg-blue-600 dark:bg-blue-500"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                  )}
-                >
-                  <button
-                    onClick={() => onSelectConversation(conversation?.id)}
-                    className={cn(
-                      "flex-1 text-left p-2 md:p-3 transition-colors min-w-0",
-                      currentConversationId === conversation?.id
-                        ? "text-white"
-                        : "text-gray-700 dark:text-gray-300",
-                      isCollapsed && "flex justify-center"
-                    )}
-                  >
-                    {isCollapsed ? (
-                      <MessageSquare size={16} className="md:w-5 md:h-5" />
-                    ) : (
-                      <div className="pr-6 md:pr-8 min-w-0">
-                        <div className="font-medium truncate text-sm md:text-base">
-                          {conversation?.title}
-                        </div>
-                        <div className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 md:mt-1 truncate">
-                          {conversation?.messageCount} messages •{" "}
-                          {new Date(
-                            conversation?.updatedAt
-                          ).toLocaleDateString()}
+                  key={i}
+                  className="h-12 md:h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"
+                ></div>
+              ))}
+            </div>
+          ) : conversations.length === 0 ? (
+            !isCollapsed && (
+              <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400 text-center py-6 md:py-8 px-2">
+                No conversations yet.
+                <br />
+                Start a new one!
+              </div>
+            )
+          ) : (
+            !isCollapsed && (
+              <div
+                id={
+                  isMobile
+                    ? "conversations-scroll-container-mobile"
+                    : "conversations-scroll-container"
+                }
+                className={cn(
+                  "overflow-y-auto",
+                  isMobile
+                    ? "max-h-[calc(100vh-264px)]"
+                    : "max-h-[calc(100vh-260px)] md:max-h-[calc(100vh-290px)]"
+                )}
+              >
+                <InfiniteScroll
+                  dataLength={conversations.length}
+                  next={debouncedLoadMore}
+                  hasMore={hasMore && !loading}
+                  loader={
+                    <div className="flex justify-center py-2">
+                      <div className="animate-pulse text-xs text-gray-500 dark:text-gray-400">
+                        Loading more conversations...
+                      </div>
+                    </div>
+                  }
+                  endMessage={
+                    conversations.length > 10 && (
+                      <div className="text-center py-2">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          All conversations loaded
                         </div>
                       </div>
-                    )}
-                  </button>
+                    )
+                  }
+                  scrollableTarget={
+                    isMobile
+                      ? "conversations-scroll-container-mobile"
+                      : "conversations-scroll-container"
+                  }
+                  className="space-y-1 mr-2"
+                >
+                  {conversations.map((conversation, index) => (
+                    <div
+                      key={conversation?.id || `conversation-${index}`}
+                      className={cn(
+                        "w-full group relative flex items-center rounded-lg overflow-hidden",
+                        currentConversationId === conversation?.id
+                          ? "bg-blue-600 dark:bg-blue-500"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                      )}
+                    >
+                      <button
+                        onClick={() => onSelectConversation(conversation?.id)}
+                        className={cn(
+                          "flex-1 text-left p-2 md:p-3 transition-colors min-w-0",
+                          currentConversationId === conversation?.id
+                            ? "text-white"
+                            : "text-gray-700 dark:text-gray-300",
+                          isCollapsed && "flex justify-center"
+                        )}
+                      >
+                        {isCollapsed ? (
+                          <MessageSquare size={16} className="md:w-5 md:h-5" />
+                        ) : (
+                          <div className="pr-6 md:pr-8 min-w-0">
+                            <div className="font-medium truncate text-sm md:text-base">
+                              {conversation?.title}
+                            </div>
+                            <div className="text-[10px] md:text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 md:mt-1 truncate">
+                              {conversation?.messageCount} messages •{" "}
+                              {new Date(
+                                conversation?.updatedAt
+                              ).toLocaleDateString()}
+                            </div>
+                          </div>
+                        )}
+                      </button>
 
-                  {!isCollapsed && (
-                    <div className="absolute right-1 md:right-2 top-1/2 transform -translate-y-1/2">
-                      <ConversationMenu
-                        conversationId={conversation?.id}
-                        currentTitle={conversation?.title}
-                        onRename={onRenameConversation}
-                        onDelete={onDeleteConversation}
-                      />
+                      {!isCollapsed && (
+                        <div className="absolute right-1 md:right-2 top-1/2 transform -translate-y-1/2">
+                          <ConversationMenu
+                            conversationId={conversation?.id}
+                            currentTitle={conversation?.title}
+                            onRename={onRenameConversation}
+                            onDelete={onDeleteConversation}
+                          />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
+                  ))}
+                </InfiniteScroll>
+              </div>
+            )
+          )}
         </div>
       </div>
 
@@ -245,7 +310,7 @@ export default function Sidebar({
               onClick={toggleCollapse}
             />
             {/* Sidebar */}
-            <div className="absolute left-0 top-0 bottom-0 w-72 sm:w-80 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 overflow-hidden shadow-xl">
+            <div className="absolute left-0 top-0 bottom-0 w-72 sm:w-80 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 shadow-xl flex flex-col">
               {renderSidebarContent()}
             </div>
           </div>
