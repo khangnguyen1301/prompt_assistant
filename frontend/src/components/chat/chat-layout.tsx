@@ -73,7 +73,7 @@ export function ChatLayout() {
     addMessage,
     updateMessage,
     clearMessages,
-  } = useMessages(currentConversationId);
+  } = useMessages({ conversationId: currentConversationId, isNewConversation });
 
   const {
     optimizePrompt,
@@ -299,6 +299,7 @@ export function ChatLayout() {
       addMessage(errorMessage);
     } finally {
       setIsLoading(false);
+      setIsNewConversation(false);
     }
   };
   return (

@@ -10,7 +10,7 @@ export function MessageSkeleton({ isUser = false }: MessageSkeletonProps) {
       className={`p-2 flex ${isUser ? "justify-end" : "justify-start"} animate-pulse`}
     >
       <div
-        className={`max-w-[${isUser ? "80%" : "90%"}] ${
+        className={`p-5 max-w-[${isUser ? "80%" : "90%"}] ${
           isUser
             ? "bg-blue-600 dark:bg-blue-700 text-white rounded-lg p-4"
             : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm"
