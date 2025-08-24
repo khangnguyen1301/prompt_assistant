@@ -5,13 +5,45 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #0969da;
+  --primary-foreground: #ffffff;
+  --secondary: #f6f8fa;
+  --secondary-foreground: #24292f;
+  --muted: #f6f8fa;
+  --muted-foreground: #656d76;
+  --accent: #f6f8fa;
+  --accent-foreground: #24292f;
+  --destructive: #da3633;
+  --destructive-foreground: #ffffff;
+  --border: #d1d9e0;
+  --input: #d1d9e0;
+  --ring: #0969da;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0d1117;
+  --foreground: #f0f6fc;
+  --card: #161b22;
+  --card-foreground: #f0f6fc;
+  --popover: #1c2128;
+  --popover-foreground: #f0f6fc;
+  --primary: #2f81f7;
+  --primary-foreground: #ffffff;
+  --secondary: #21262d;
+  --secondary-foreground: #f0f6fc;
+  --muted: #21262d;
+  --muted-foreground: #8b949e;
+  --accent: #21262d;
+  --accent-foreground: #f0f6fc;
+  --destructive: #f85149;
+  --destructive-foreground: #ffffff;
+  --border: #30363d;
+  --input: #21262d;
+  --ring: #2f81f7;
 }
 
 body {
@@ -20,6 +52,233 @@ body {
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
+}
+
+/* Clerk Dark Mode Custom Styles */
+.dark .cl-internal-b3fm6y {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #ffffff !important;
+}
+
+.dark .cl-userButtonPopover {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .cl-userButtonPopover__actions {
+  background-color: #1f2937 !important;
+}
+
+.dark .cl-userButtonPopover__action {
+  color: #ffffff !important;
+}
+
+.dark .cl-userButtonPopover__action:hover {
+  background-color: #374151 !important;
+}
+
+.dark .cl-modalContent {
+  color: #ffffff !important;
+}
+
+.dark .cl-pageScrollBox {
+  color: #ffffff !important;
+}
+
+.dark .cl-navbarButton {
+  color: #ffffff !important;
+}
+
+.dark .cl-navbarButton:hover {
+  background-color: #1f2937 !important;
+}
+
+.dark .cl-card {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .cl-headerTitle {
+  color: #ffffff !important;
+}
+
+.dark .cl-headerSubtitle {
+  color: #d1d5db !important;
+}
+
+.dark .cl-formFieldLabel {
+  color: #ffffff !important;
+}
+
+.dark .cl-formFieldInput {
+  background-color: #1f2937 !important;
+  border-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+
+.dark .cl-profileSectionTitle {
+  color: #ffffff !important;
+}
+
+.dark .cl-profileSectionContent {
+  color: #ffffff !important;
+}
+
+.dark .cl-button {
+  border-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+
+.dark .cl-button:hover {
+  background-color: #374151 !important;
+}
+
+.dark .cl-divider {
+  border-color: #374151 !important;
+}
+
+.dark .cl-text {
+  color: #ffffff !important;
+}
+
+.dark .cl-textSecondary {
+  color: #d1d5db !important;
+}
+
+/* More comprehensive Clerk dark mode overrides */
+.dark [data-clerk-theme] {
+  background-color: #111827 !important;
+  color: #ffffff !important;
+}
+
+.dark [data-clerk-theme] * {
+  color: #ffffff !important;
+}
+
+.dark [data-clerk-theme] h1,
+.dark [data-clerk-theme] h2,
+.dark [data-clerk-theme] h3,
+.dark [data-clerk-theme] h4,
+.dark [data-clerk-theme] h5,
+.dark [data-clerk-theme] h6 {
+  color: #ffffff !important;
+}
+
+.dark [data-clerk-theme] p,
+.dark [data-clerk-theme] span,
+.dark [data-clerk-theme] div {
+  color: #ffffff !important;
+}
+
+.dark [data-clerk-theme] label {
+  color: #ffffff !important;
+}
+
+.dark [data-clerk-theme] input {
+  background-color: #1f2937 !important;
+  border-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+
+.dark [data-clerk-theme] button {
+  color: #ffffff !important;
+}
+
+.dark [data-clerk-theme] .cl-internal-1wany0r {
+  color: #ffffff !important;
+}
+
+.dark [data-clerk-theme] .cl-internal-1b4k2p1 {
+  color: #ffffff !important;
+}
+
+/* Additional specific overrides for Account page */
+
+.dark .cl-main {
+  color: #ffffff !important;
+}
+
+.dark .cl-profileSection {
+  color: #ffffff !important;
+}
+
+.dark .cl-profileSection__title {
+  color: #ffffff !important;
+}
+
+.dark .cl-profileSection__content {
+  color: #ffffff !important;
+}
+
+.dark .cl-profileSection__emailAddress {
+  color: #ffffff !important;
+}
+
+.dark .cl-profileSection__emailAddressLabel {
+  color: #ffffff !important;
+}
+
+.dark .cl-badge {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+.dark .cl-identityPreview {
+  color: #ffffff !important;
+}
+
+.dark .cl-identityPreview__title {
+  color: #ffffff !important;
+}
+
+.dark .cl-identityPreview__subtitle {
+  color: #d1d5db !important;
+}
+
+/* Override any remaining text elements */
+.dark [class*="cl-"] {
+  color: #ffffff !important;
+}
+
+.dark [class*="cl-"]:not([class*="bg-"]):not([class*="border-"]) {
+  color: #ffffff !important;
+}
+
+/* Force all text content within Clerk components to be white in dark mode */
+.dark [data-clerk-theme] *,
+.dark .cl-rootBox *,
+.dark .cl-main *,
+.dark .cl-modalContent *,
+.dark .cl-pageScrollBox *,
+.dark .cl-card *,
+.dark .cl-profileSection * {
+  color: #ffffff !important;
+}
+
+/* Specifically target all text nodes */
+.dark .cl-internal-* {
+  color: #ffffff !important;
+}
+
+/* Ultra-specific overrides for stubborn elements */
+.dark [class^="cl-"] h1,
+.dark [class^="cl-"] h2,
+.dark [class^="cl-"] h3,
+.dark [class^="cl-"] h4,
+.dark [class^="cl-"] h5,
+.dark [class^="cl-"] h6,
+.dark [class^="cl-"] p,
+.dark [class^="cl-"] span,
+.dark [class^="cl-"] div,
+.dark [class^="cl-"] label,
+.dark [class^="cl-"] a {
+  color: #ffffff !important;
+}
+
+/* Target Clerk's internal class names that might be dynamically generated */
+.dark [class*="internal"] {
+  color: #ffffff !important;
 }
 
 /* Thanh cuộn chính */

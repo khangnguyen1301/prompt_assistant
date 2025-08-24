@@ -74,12 +74,6 @@ export function SettingsPage() {
     <div className="mx-auto p-3 max-w-2xl">
       <div className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
         <div className="border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2 mb-2">
-            <Key className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            <h2 className="text-gray-600 dark:text-gray-300 text-xl font-semibold">
-              Gemini API Key
-            </h2>
-          </div>
           <p className="text-gray-600 dark:text-gray-400">
             Configure your personal Google Gemini API key to use the prompt
             optimization service.

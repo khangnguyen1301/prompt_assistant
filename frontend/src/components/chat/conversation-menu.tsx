@@ -96,7 +96,7 @@ export function ConversationMenu({
           value={editTitle}
           onChange={(e) => setEditTitle(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="w-full flex-1 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full flex-1 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
           maxLength={100}
           placeholder="Enter conversation title..."
         />
@@ -109,22 +109,22 @@ export function ConversationMenu({
       <DropdownMenu.Trigger asChild>
         <button
           onClick={handleMenuClick}
-          className="p-0.5 md:p-1 opacity-0 group-hover:opacity-100 hover:bg-gray-200 rounded transition-all duration-200"
+          className="p-0.5 md:p-1 opacity-0 group-hover:opacity-100 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-all duration-200"
           title="More options"
         >
-          <MoreVertical className="w-3 h-3 md:w-4 md:h-4 text-gray-500" />
+          <MoreVertical className="w-3 h-3 md:w-4 md:h-4 text-gray-500 dark:text-gray-400" />
         </button>
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
         <DropdownMenu.Content
-          className="min-w-[140px] md:min-w-[160px] bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+          className="min-w-[140px] md:min-w-[160px] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
           sideOffset={5}
           align="end"
         >
           <DropdownMenu.Item
             onClick={handleRename}
-            className="flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer outline-none"
+            className="flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer outline-none"
           >
             <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
             Rename
@@ -132,7 +132,7 @@ export function ConversationMenu({
 
           <DropdownMenu.Item
             onClick={handleDelete}
-            className="flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm text-red-600 hover:bg-red-50 cursor-pointer outline-none"
+            className="flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer outline-none"
           >
             <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
             Delete
