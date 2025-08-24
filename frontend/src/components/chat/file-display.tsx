@@ -50,14 +50,12 @@ export function FileDisplay({ file, isImage = false }: FileDisplayProps) {
         )
           .then((response) => {
             if (response.ok) {
-              console.log("🚀 ~ FileDisplay ~ response.ok:", response);
               return response.blob();
             }
             throw new Error("Failed to fetch file");
           })
           .then((blob) => {
             const url = URL.createObjectURL(blob);
-            console.log("🚀 ~ FileDisplay ~ url:", url);
             setImageSrc(url);
             setError(false);
           })

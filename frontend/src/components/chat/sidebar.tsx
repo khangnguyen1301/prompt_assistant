@@ -48,11 +48,6 @@ export default function Sidebar({
     }
 
     loadMoreTimeoutRef.current = setTimeout(() => {
-      console.log("🚀 ~ debouncedLoadMore executing", {
-        isMobile,
-        hasMore,
-        loading,
-      });
       if (onLoadMore) {
         onLoadMore();
       }

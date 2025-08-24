@@ -12,7 +12,6 @@ export interface Conversation {
 export function useConversations() {
   const { getToken, isLoaded, userId } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  console.log("🚀 ~ useConversations ~ conversations:", conversations);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const loadingRef = useRef(false);
@@ -70,20 +69,8 @@ export function useConversations() {
   };
 
   const loadMoreConversations = async () => {
-    console.log("🚀 ~ loadMoreConversations called", {
-      hasMore,
-      loading,
-      loadingRef: loadingRef.current,
-      page,
-    });
-
     // Kiểm tra cả loading state và ref để tránh race condition
     if (!hasMore || loading || loadingRef.current) {
-      console.log("⚠️ ~ loadMoreConversations aborted", {
-        hasMore,
-        loading,
-        loadingRef: loadingRef.current,
-      });
       return;
     }
 
@@ -91,7 +78,6 @@ export function useConversations() {
     loadingRef.current = true;
 
     const nextPage = page + 1;
-    console.log("📄 ~ loadMoreConversations fetching page:", nextPage);
     setPage(nextPage);
 
     try {

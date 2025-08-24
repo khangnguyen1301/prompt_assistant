@@ -44,7 +44,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     });
   };
 
-  console.log("🚀 ~ MessageBubble ~ message:", message);
   if (message.role === "USER") {
     return (
       <div className="flex justify-end px-2 md:px-0">

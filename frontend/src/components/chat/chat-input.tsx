@@ -223,8 +223,6 @@ export function ChatInput({
     textareaRef.current?.focus();
   };
 
-  console.log(uploadedFiles);
-
   return (
     <div className="border-gray-200 dark:border-gray-700">
       {/* Example prompts (show when input is empty, it's a new conversation, and examples are not closed) */}

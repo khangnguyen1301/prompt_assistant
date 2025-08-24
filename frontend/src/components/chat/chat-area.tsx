@@ -35,8 +35,6 @@ export function ChatArea({
 }: ChatAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { status: apiKeyStatus, loading: apiKeyLoading } = useApiKeyStatus();
-  const { isCollapsed } = useSidebarStore();
-  console.log("🚀 ~ ChatArea ~ isCollapsed:", isCollapsed);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
