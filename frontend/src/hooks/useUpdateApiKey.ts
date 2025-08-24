@@ -14,14 +14,17 @@ export function useUpdateApiKey() {
         setError(null);
 
         const token = await getToken();
-        const response = await fetch("/api/settings/api-key", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ apiKey }),
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/settings/api-key`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ apiKey }),
+          }
+        );
 
         if (response.ok) {
           // Update the store with new status

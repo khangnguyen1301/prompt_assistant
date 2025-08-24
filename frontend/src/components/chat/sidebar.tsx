@@ -267,6 +267,89 @@ export default function Sidebar({
                 appearance={{
                   elements: {
                     avatarBox: "w-8 h-8",
+                    // Main popover container
+                    userButtonPopoverCard:
+                      "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl dark:shadow-2xl",
+
+                    // Header section
+                    userButtonPopoverMain: "bg-white dark:bg-gray-800",
+                    userPreview: "bg-white dark:bg-gray-800",
+                    userPreviewMainIdentifier:
+                      "text-gray-900 dark:text-white font-medium",
+                    userPreviewSecondaryIdentifier:
+                      "text-gray-500 dark:text-gray-300",
+
+                    // Action buttons (Account, Security, etc.)
+                    userButtonPopoverActionButton:
+                      "text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors",
+                    userButtonPopoverActionButtonText:
+                      "text-gray-700 dark:text-white",
+                    userButtonPopoverActionButtonIcon:
+                      "text-gray-500 dark:text-gray-300",
+
+                    // Footer section
+                    userButtonPopoverFooter:
+                      "bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700",
+
+                    // Modal/Page content when clicking Account/Security
+                    modalContent: "bg-white dark:bg-gray-900",
+                    modalCloseButton:
+                      "text-gray-500 dark:text-white hover:text-gray-700 dark:hover:text-gray-200",
+
+                    // Page content
+                    pageScrollBox: "bg-white dark:bg-gray-900",
+                    navbar:
+                      "bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700",
+                    navbarButton:
+                      "text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800",
+                    navbarButtonIcon: "text-gray-500 dark:text-gray-300",
+
+                    // Form elements
+                    formFieldLabel: "text-gray-700 dark:text-white",
+                    formFieldInput:
+                      "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white",
+                    formButtonPrimary:
+                      "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600",
+
+                    // Cards and sections
+                    card: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+                    headerTitle: "text-gray-900 dark:text-white",
+                    headerSubtitle: "text-gray-600 dark:text-gray-300",
+
+                    // Profile section
+                    profileSection: "bg-white",
+                    profileSectionTitle: "text-gray-900 dark:text-white",
+                    profileSectionContent: "text-gray-700 dark:text-white",
+
+                    // Buttons and interactive elements
+                    button:
+                      "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700",
+                    buttonText: "text-gray-700 dark:text-white",
+
+                    // Table elements (for connected accounts, etc.)
+                    table: "bg-white dark:bg-gray-800",
+                    tableHead:
+                      "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-white",
+                    tableBody:
+                      "bg-white dark:bg-gray-800 text-gray-900 dark:text-white",
+                    tableRow:
+                      "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700",
+
+                    // Dividers and separators
+                    divider: "border-gray-200 dark:border-gray-700",
+
+                    // Text elements
+                    text: "text-gray-900 dark:text-white",
+                    textSecondary: "text-gray-600 dark:text-gray-300",
+
+                    // Additional comprehensive elements
+                    main: "bg-white dark:bg-gray-900 text-gray-900 dark:text-white",
+                    identityPreview: "text-gray-900 dark:text-white",
+                    identityPreviewTitle: "text-gray-900 dark:text-white",
+                    identityPreviewSubtitle: "text-gray-500 dark:text-gray-300",
+                    badge: "bg-blue-600 dark:bg-blue-500 text-white",
+                    emailAddress: "text-gray-900 dark:text-white",
+                    emailAddressLabel: "text-gray-700 dark:text-white",
                   },
                 }}
                 afterSignOutUrl="/sign-in"
