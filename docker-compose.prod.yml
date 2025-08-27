@@ -1,0 +1,82 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: prompt_assistant_db
+    environment:
+      POSTGRES_DB: prompt_assistant
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - prompt_assistant_network
+    restart: always
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: prompt_assistant_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - prompt_assistant_network
+    restart: always
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prompt_assistant_backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/prompt_assistant
+      REDIS_URL: redis://redis:6379
+      CLERK_SECRET_KEY: sk_test_MxcZhxjNULhEmeDlDvvPpGIzMtEC1c16XhdGgH1X2z
+      CLERK_WEBHOOK_SECRET: your-clerk-webhook-secret
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - prompt_assistant_network
+    command: npm run start:prod
+    restart: always
+
+  # Frontend Web App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: prompt_assistant_frontend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://backend:3001
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ZnJlc2gtY291Z2FyLTY0LmNsZXJrLmFjY291bnRzLmRldiQ
+      NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
+      NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+      NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: /
+      NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: /
+      NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL: /sign-in
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - prompt_assistant_network
+    command: npm run start
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  prompt_assistant_network:
+    driver: bridge
