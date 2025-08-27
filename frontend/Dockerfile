@@ -9,8 +9,10 @@ RUN npm run build
 # Stage 2: Run
 FROM node:20-alpine
 WORKDIR /app
+ENV NODE_ENV=production
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 COPY package*.json ./
-EXPOSE 3001
-CMD ["npm", "run", "start:prod"]
+EXPOSE 3000
+CMD ["npm", "run", "start"]
