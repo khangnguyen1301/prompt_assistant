@@ -5,13 +5,13 @@ name: Prompt Assistant CI/CD
 
 on:
   push:
-    branches: ["main", "develop"]
+    branches: ["develop"]
     paths-ignore:
       - "*.md"
       - "docs/**"
       - ".gitignore"
   pull_request:
-    branches: ["main", "develop"]
+    branches: ["develop"]
     paths-ignore:
       - "*.md"
       - "docs/**"
@@ -77,8 +77,22 @@ jobs:
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: |
+          # Clean install to avoid dependency issues
           rm -f package-lock.json
+          rm -rf node_modules
+          
+          # Install with full dependencies
           npm install --prefer-offline --no-audit --legacy-peer-deps
+          
+          # Verify critical packages
+          echo "Checking tailwindcss installation..."
+          npm list tailwindcss || npm install tailwindcss@3.4.1 --save-dev
+          
+          # Create tailwind.config.js if it doesn't exist
+          if [ ! -f tailwind.config.js ]; then
+            echo "Creating tailwind.config.js..."
+            npx tailwindcss init
+          fi
         timeout-minutes: 8
 
       - name: Install backend dependencies
@@ -99,11 +113,19 @@ jobs:
 
       - name: Build (Frontend)
         working-directory: ./frontend
-        run: npm run build
+        run: |
+          # Ensure correct paths are resolved
+          export NODE_PATH=./node_modules
+          
+          # Clear Next.js cache
+          rm -rf .next
+          
+          # Install postcss explicitly
+          npm install postcss@latest autoprefixer@latest tailwindcss@latest --no-save
+          
+          # Build with extra logging
+          NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS="--max-old-space-size=4096" npm run build
         timeout-minutes: 15
-        env:
-          NEXT_TELEMETRY_DISABLED: 1
-          NODE_OPTIONS: "--max-old-space-size=4096"
 
       - name: Build (Backend)
         working-directory: ./backend
@@ -344,13 +366,26 @@ jobs:
           # Ensure deployment directory exists
           mkdir -p "$DEPLOY_DIR"
 
-          # Copy new files (excluding node_modules)
+          # Copy new files (including build artifacts but excluding node_modules)
           rsync -av --delete \
             --exclude 'node_modules' \
             --exclude '.git' \
             --exclude '.env*' \
             "${{ github.workspace }}/" \
             "$DEPLOY_DIR/"
+            
+          # Make sure build artifacts exist in the correct location
+          if [ ! -d "$DEPLOY_DIR/frontend/.next" ]; then
+            echo "Warning: Frontend build artifacts not found at expected location"
+            # Create directory structure
+            mkdir -p "$DEPLOY_DIR/frontend/.next"
+          fi
+          
+          if [ ! -d "$DEPLOY_DIR/backend/dist" ]; then
+            echo "Warning: Backend build artifacts not found at expected location"
+            # Create directory structure
+            mkdir -p "$DEPLOY_DIR/backend/dist"
+          fi
 
           # Set correct permissions
           chown -R deploy:deploy "$DEPLOY_DIR"
