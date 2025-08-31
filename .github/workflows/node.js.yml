@@ -72,20 +72,23 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: |
-            frontend/package-lock.json
-            backend/package-lock.json
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies (Root)
+        run: |
+          npm ci --prefer-offline --no-audit --progress=false
+        timeout-minutes: 5
 
       - name: Install dependencies (Frontend)
         working-directory: ./frontend
         run: |
-          npm ci --prefer-offline --no-audit --progress=false
+          npm install --prefer-offline --no-audit --progress=false
         timeout-minutes: 5
 
       - name: Install dependencies (Backend)
         working-directory: ./backend
         run: |
-          npm ci --prefer-offline --no-audit --progress=false
+          npm install --prefer-offline --no-audit --progress=false
         timeout-minutes: 5
 
       - name: Type check (Frontend)
