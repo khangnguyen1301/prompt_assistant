@@ -232,18 +232,12 @@ jobs:
       - name: Setup deployment environment
         run: |
           # Create deployment directory
-          export DEPLOY_DIR="/home/deploy/apps/prompt_assistant"
-          export BACKUP_DIR="/home/deploy/backups/$(date +%Y%m%d_%H%M%S)"
+          export DEPLOY_DIR="/tmp/prompt_assistant_deploy"
+          export BACKUP_DIR="/tmp/prompt_assistant_backup_$(date +%Y%m%d_%H%M%S)"
 
-          # Ensure deployment directories exist with proper permissions
-          sudo mkdir -p "$DEPLOY_DIR"
-          sudo mkdir -p "$BACKUP_DIR"
-          sudo chown -R $(whoami):$(whoami) "/home/deploy"
-
-          # Create backup of current deployment
-          if [ -d "$DEPLOY_DIR" ]; then
-            cp -r "$DEPLOY_DIR" "$BACKUP_DIR/"
-          fi
+          # Create working directories in /tmp (writable by user)
+          mkdir -p "$DEPLOY_DIR"
+          mkdir -p "$BACKUP_DIR"
 
           # Store paths for next steps
           echo "DEPLOY_DIR=$DEPLOY_DIR" >> $GITHUB_ENV
@@ -251,11 +245,7 @@ jobs:
 
       - name: Create environment file
         run: |
-          # Ensure deployment directory exists with proper permissions
-          sudo mkdir -p "$DEPLOY_DIR"
-          sudo chown -R $(whoami):$(whoami) "$DEPLOY_DIR"
-          
-          # Create .env file from GitHub Secrets
+          # Create .env file from GitHub Secrets (in writable temp directory)
           cat > "$DEPLOY_DIR/.env" << EOF
           # Application Settings
           NODE_ENV=production
@@ -334,11 +324,7 @@ jobs:
 
       - name: Deploy application
         run: |
-          # Ensure deployment directory exists with proper permissions
-          sudo mkdir -p "$DEPLOY_DIR"
-          sudo chown -R $(whoami):$(whoami) "$DEPLOY_DIR"
-
-          # Copy new files (including build artifacts but excluding node_modules)
+          # Copy new files to temp directory
           rsync -av --delete \
             --exclude 'node_modules' \
             --exclude '.git' \
@@ -358,9 +344,6 @@ jobs:
             # Create directory structure
             mkdir -p "$DEPLOY_DIR/backend/dist"
           fi
-
-          # Set correct permissions for all files
-          chown -R $(whoami):$(whoami) "$DEPLOY_DIR"
         timeout-minutes: 5
 
       - name: Install dependencies and build
@@ -383,6 +366,26 @@ jobs:
           echo "Building backend..."
           npm run build
         timeout-minutes: 15
+
+      - name: Move to final deployment location
+        run: |
+          # Create final deployment directory with sudo
+          sudo mkdir -p /home/deploy/apps/prompt_assistant
+          
+          # Stop existing services before replacing files
+          sudo systemctl stop prompt-assistant-frontend || pm2 stop prompt-assistant-frontend || true
+          sudo systemctl stop prompt-assistant-backend || pm2 stop prompt-assistant-backend || true
+          
+          # Remove old deployment and move new one
+          sudo rm -rf /home/deploy/apps/prompt_assistant
+          sudo mv "$DEPLOY_DIR" /home/deploy/apps/prompt_assistant
+          
+          # Set correct ownership for the final location
+          sudo chown -R deploy:deploy /home/deploy/apps/prompt_assistant || sudo chown -R $(whoami):$(whoami) /home/deploy/apps/prompt_assistant
+          
+          # Update DEPLOY_DIR to point to final location
+          echo "DEPLOY_DIR=/home/deploy/apps/prompt_assistant" >> $GITHUB_ENV
+        timeout-minutes: 3
 
       - name: Database migration (if needed)
         run: |
