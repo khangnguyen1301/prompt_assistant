@@ -88,11 +88,11 @@ jobs:
           # Create placeholder artifact folders
           mkdir -p frontend/.next/placeholder
           mkdir -p backend/dist/placeholder
-          
+
           # Create placeholder files
           echo "This is a placeholder for build artifacts. Actual build will happen on deployment server." > frontend/.next/placeholder/README.txt
           echo "This is a placeholder for build artifacts. Actual build will happen on deployment server." > backend/dist/placeholder/README.txt
-          
+
           echo "Created placeholder artifacts"
 
       - name: Upload placeholder artifacts
@@ -141,17 +141,17 @@ jobs:
         run: |
           # Make setup script executable
           chmod +x scripts/deploy-setup.sh
-          
+
           # Set CI mode environment variables
           export CI=true
           export CI_MODE=true
           export INTERACTIVE=false
           export DEBIAN_FRONTEND=noninteractive
-          
+
           # Run deployment setup
           echo "🚀 Running deployment setup..."
           ./scripts/deploy-setup.sh
-          
+
           echo "✅ Deployment completed successfully"
             
             # Basic checks to ensure minimum requirements
@@ -231,13 +231,18 @@ jobs:
 
       - name: Setup deployment environment
         run: |
-          # Create deployment directory
-          export DEPLOY_DIR="/tmp/prompt_assistant_deploy"
-          export BACKUP_DIR="/tmp/prompt_assistant_backup_$(date +%Y%m%d_%H%M%S)"
+          # Use a directory we have full control over
+          export DEPLOY_DIR="$HOME/prompt_assistant_app"
+          export BACKUP_DIR="$HOME/prompt_assistant_backup_$(date +%Y%m%d_%H%M%S)"
 
-          # Create working directories in /tmp (writable by user)
+          # Create backup of current deployment if it exists
+          if [ -d "$DEPLOY_DIR" ]; then
+            cp -r "$DEPLOY_DIR" "$BACKUP_DIR"
+          fi
+
+          # Create fresh deployment directory
+          rm -rf "$DEPLOY_DIR"
           mkdir -p "$DEPLOY_DIR"
-          mkdir -p "$BACKUP_DIR"
 
           # Store paths for next steps
           echo "DEPLOY_DIR=$DEPLOY_DIR" >> $GITHUB_ENV
@@ -305,9 +310,8 @@ jobs:
           BACKEND_PORT=3001
           EOF
 
-          # Set correct permissions
+          # Set correct permissions (no ownership change needed in temp directory)
           chmod 600 "$DEPLOY_DIR/.env"
-          chown deploy:deploy "$DEPLOY_DIR/.env"
 
       - name: Stop services gracefully
         run: |
@@ -338,7 +342,7 @@ jobs:
             # Create directory structure
             mkdir -p "$DEPLOY_DIR/frontend/.next"
           fi
-          
+
           if [ ! -d "$DEPLOY_DIR/backend/dist" ]; then
             echo "Warning: Backend build artifacts not found at expected location"
             # Create directory structure
@@ -349,43 +353,23 @@ jobs:
       - name: Install dependencies and build
         run: |
           cd "$DEPLOY_DIR"
-          
+
           # Run CI setup script
           chmod +x scripts/ci-setup.sh
           ./scripts/ci-setup.sh
-          
+
           # Build frontend
           cd frontend
           export NODE_OPTIONS="--max-old-space-size=4096"
           export NEXT_TELEMETRY_DISABLED=1
           echo "Building frontend..."
           npm run build
-          
+
           # Build backend
           cd ../backend
           echo "Building backend..."
           npm run build
         timeout-minutes: 15
-
-      - name: Move to final deployment location
-        run: |
-          # Create final deployment directory with sudo
-          sudo mkdir -p /home/deploy/apps/prompt_assistant
-          
-          # Stop existing services before replacing files
-          sudo systemctl stop prompt-assistant-frontend || pm2 stop prompt-assistant-frontend || true
-          sudo systemctl stop prompt-assistant-backend || pm2 stop prompt-assistant-backend || true
-          
-          # Remove old deployment and move new one
-          sudo rm -rf /home/deploy/apps/prompt_assistant
-          sudo mv "$DEPLOY_DIR" /home/deploy/apps/prompt_assistant
-          
-          # Set correct ownership for the final location
-          sudo chown -R deploy:deploy /home/deploy/apps/prompt_assistant || sudo chown -R $(whoami):$(whoami) /home/deploy/apps/prompt_assistant
-          
-          # Update DEPLOY_DIR to point to final location
-          echo "DEPLOY_DIR=/home/deploy/apps/prompt_assistant" >> $GITHUB_ENV
-        timeout-minutes: 3
 
       - name: Database migration (if needed)
         run: |
