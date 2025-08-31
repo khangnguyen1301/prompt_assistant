@@ -71,29 +71,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
-          cache-dependency-path: |
-            package-lock.json
-            frontend/package-lock.json
 
-      - name: Install dependencies (Root)
+      - name: Setup CI Environment
         run: |
-          npm ci --prefer-offline --no-audit --progress=false
-        timeout-minutes: 5
-
-      - name: Install dependencies (Frontend)
-        working-directory: ./frontend
-        run: |
-          rm -rf node_modules .next
-          npm ci --prefer-offline --no-audit --progress=false
-        timeout-minutes: 8
-
-      - name: Install dependencies (Backend)
-        working-directory: ./backend
-        run: |
-          rm -rf node_modules dist
-          npm install --prefer-offline --no-audit --progress=false
-        timeout-minutes: 5
+          chmod +x scripts/ci-setup.sh
+          ./scripts/ci-setup.sh
+        timeout-minutes: 15
 
       - name: Type check (Frontend)
         working-directory: ./frontend
@@ -111,6 +94,7 @@ jobs:
         timeout-minutes: 10
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
       - name: Build (Backend)
         working-directory: ./backend
