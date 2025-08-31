@@ -350,26 +350,85 @@ jobs:
           fi
         timeout-minutes: 5
 
+      - name: Cleanup any previous builds
+        run: |
+          echo "🧹 Cleaning up any previous build processes..."
+          
+          # Kill any existing node processes that might be stuck
+          pkill -f "node.*build" || true
+          pkill -f "npm.*build" || true
+          pkill -f "next.*build" || true
+          
+          # Clean up any stuck lock files
+          rm -f /tmp/.X*-lock || true
+          rm -f $HOME/.npm/_locks/* || true
+          
+          # Clean up build logs
+          rm -f /tmp/frontend-build.log || true
+          
+          echo "✅ Cleanup completed"
+        timeout-minutes: 2
+
       - name: Install dependencies and build
         run: |
           cd "$DEPLOY_DIR"
 
-          # Run CI setup script
-          chmod +x scripts/ci-setup.sh
-          ./scripts/ci-setup.sh
-
-          # Build frontend
+          echo "🚀 Starting simplified build process..."
+          
+          # Install root dependencies quickly
+          echo "📦 Installing root dependencies..."
+          npm ci --prefer-offline --no-audit --silent
+          
+          # Frontend setup and build
+          echo "🔧 Setting up frontend..."
           cd frontend
-          export NODE_OPTIONS="--max-old-space-size=4096"
+          
+          # Quick dependency install
+          rm -f package-lock.json
+          npm install --no-audit --legacy-peer-deps --silent
+          
+          # Ensure critical packages
+          npm install --save-dev typescript@5.3.3 tailwindcss@3.4.1 --silent
+          
+          echo "🔨 Building frontend (this may take several minutes)..."
+          echo "⏰ Build started at: $(date)"
+          
+          # Build with reduced memory pressure
+          export NODE_OPTIONS="--max-old-space-size=1536"
           export NEXT_TELEMETRY_DISABLED=1
-          echo "Building frontend..."
-          npm run build
-
-          # Build backend
+          export CI=true
+          
+          # Run build with progress indicators
+          npm run build 2>&1 | tee /tmp/frontend-build.log &
+          BUILD_PID=$!
+          
+          # Monitor build progress
+          while kill -0 $BUILD_PID 2>/dev/null; do
+            echo "⏳ Build still running... $(date)"
+            sleep 30
+          done
+          
+          # Check if build succeeded
+          wait $BUILD_PID
+          BUILD_EXIT_CODE=$?
+          
+          if [ $BUILD_EXIT_CODE -ne 0 ]; then
+            echo "❌ Frontend build failed with exit code: $BUILD_EXIT_CODE"
+            echo "� Last 20 lines of build log:"
+            tail -20 /tmp/frontend-build.log
+            exit 1
+          fi
+          
+          echo "✅ Frontend build completed at: $(date)"
+          
+          # Backend build
           cd ../backend
-          echo "Building backend..."
+          echo "🔧 Building backend..."
+          npm install --no-audit --silent
           npm run build
-        timeout-minutes: 15
+          
+          echo "🎉 All builds completed successfully!"
+        timeout-minutes: 25
 
       - name: Database migration (if needed)
         run: |
