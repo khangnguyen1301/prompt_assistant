@@ -235,9 +235,13 @@ jobs:
           export DEPLOY_DIR="/home/deploy/apps/prompt_assistant"
           export BACKUP_DIR="/home/deploy/backups/$(date +%Y%m%d_%H%M%S)"
 
+          # Ensure deployment directories exist with proper permissions
+          sudo mkdir -p "$DEPLOY_DIR"
+          sudo mkdir -p "$BACKUP_DIR"
+          sudo chown -R $(whoami):$(whoami) "/home/deploy"
+
           # Create backup of current deployment
           if [ -d "$DEPLOY_DIR" ]; then
-            mkdir -p "$BACKUP_DIR"
             cp -r "$DEPLOY_DIR" "$BACKUP_DIR/"
           fi
 
@@ -247,6 +251,10 @@ jobs:
 
       - name: Create environment file
         run: |
+          # Ensure deployment directory exists with proper permissions
+          sudo mkdir -p "$DEPLOY_DIR"
+          sudo chown -R $(whoami):$(whoami) "$DEPLOY_DIR"
+          
           # Create .env file from GitHub Secrets
           cat > "$DEPLOY_DIR/.env" << EOF
           # Application Settings
@@ -326,8 +334,9 @@ jobs:
 
       - name: Deploy application
         run: |
-          # Ensure deployment directory exists
-          mkdir -p "$DEPLOY_DIR"
+          # Ensure deployment directory exists with proper permissions
+          sudo mkdir -p "$DEPLOY_DIR"
+          sudo chown -R $(whoami):$(whoami) "$DEPLOY_DIR"
 
           # Copy new files (including build artifacts but excluding node_modules)
           rsync -av --delete \
@@ -350,8 +359,8 @@ jobs:
             mkdir -p "$DEPLOY_DIR/backend/dist"
           fi
 
-          # Set correct permissions
-          chown -R deploy:deploy "$DEPLOY_DIR"
+          # Set correct permissions for all files
+          chown -R $(whoami):$(whoami) "$DEPLOY_DIR"
         timeout-minutes: 5
 
       - name: Install dependencies and build
