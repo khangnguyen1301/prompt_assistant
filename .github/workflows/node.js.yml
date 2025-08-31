@@ -84,12 +84,14 @@ jobs:
       - name: Install dependencies (Frontend)
         working-directory: ./frontend
         run: |
+          rm -rf node_modules .next
           npm ci --prefer-offline --no-audit --progress=false
-        timeout-minutes: 5
+        timeout-minutes: 8
 
       - name: Install dependencies (Backend)
         working-directory: ./backend
         run: |
+          rm -rf node_modules dist
           npm install --prefer-offline --no-audit --progress=false
         timeout-minutes: 5
 
