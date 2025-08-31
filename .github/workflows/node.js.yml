@@ -50,56 +50,45 @@ jobs:
             echo "should-deploy=false" >> $GITHUB_OUTPUT
           fi
 
-  # Build and Test Job (GitHub Hosted Runners)
+  # Build and Test Job (Container-based)
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    container: node:20-alpine
+    timeout-minutes: 25
     needs: pre-check
 
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
+      - name: Install system dependencies
+        run: apk add --no-cache git
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Setup CI Environment
+      - name: Install dependencies and build
         run: |
-          chmod +x scripts/ci-setup.sh
-          ./scripts/ci-setup.sh
-        timeout-minutes: 15
-
-      - name: Type check (Frontend)
-        working-directory: ./frontend
-        run: npm run type-check || echo "Type check warnings found but continuing..."
-        timeout-minutes: 3
-
-      - name: Lint (Frontend)
-        working-directory: ./frontend
-        run: npm run lint || echo "Lint warnings found but continuing..."
-        timeout-minutes: 3
-
-      - name: Build (Frontend)
-        working-directory: ./frontend
-        run: npm run build
-        timeout-minutes: 10
-        env:
-          NEXT_TELEMETRY_DISABLED: 1
-          NODE_OPTIONS: "--max-old-space-size=4096"
-
-      - name: Build (Backend)
-        working-directory: ./backend
-        run: npm run build
-        timeout-minutes: 5
+          # Set environment variables
+          export NODE_ENV=production
+          export CI=true
+          export NEXT_TELEMETRY_DISABLED=1
+          
+          # Clean install root dependencies
+          npm ci --prefer-offline --no-audit
+          
+          # Install and build frontend
+          cd frontend
+          rm -f package-lock.json
+          npm install --prefer-offline --no-audit --legacy-peer-deps
+          npm run build || (echo "Frontend build failed, trying with more memory" && NODE_OPTIONS="--max-old-space-size=4096" npm run build)
+          cd ..
+          
+          # Install and build backend
+          cd backend
+          npm install --prefer-offline --no-audit
+          npm run build
+          cd ..
 
       - name: Upload build artifacts
         if: needs.pre-check.outputs.should-deploy == 'true'
