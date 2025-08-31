@@ -1,29 +1,473 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+# Optimized CI/CD Pipeline for Prompt Assistant
+# Prevents server overload and includes proper resource management
 
-name: Node.js CI For Prompt Assistant
+name: Prompt Assistant CI/CD
 
 on:
   push:
-    branches: ["develop"]
+    branches: ["main", "develop"]
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - ".gitignore"
   pull_request:
-    branches: ["develop"]
+    branches: ["main", "develop"]
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - ".gitignore"
+
+# Cancel previous runs if new push occurs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: production
+  CI: true
+  FORCE_COLOR: 1
 
 jobs:
-  build:
-    runs-on: self-hosted
+  # Pre-checks to avoid unnecessary builds
+  pre-check:
+    name: Pre-build Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      should-deploy: ${{ steps.check.outputs.should-deploy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check if should deploy
+        id: check
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]] && [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "should-deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "should-deploy=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Build and Test Job (GitHub Hosted Runners)
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: pre-check
 
     strategy:
       matrix:
         node-version: [20.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-      - name: Start CI/CD
-        run: npm ci
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Install dependencies (Frontend)
+        working-directory: ./frontend
+        run: |
+          npm ci --prefer-offline --no-audit --progress=false
+        timeout-minutes: 5
+
+      - name: Install dependencies (Backend)
+        working-directory: ./backend
+        run: |
+          npm ci --prefer-offline --no-audit --progress=false
+        timeout-minutes: 5
+
+      - name: Type check (Frontend)
+        working-directory: ./frontend
+        run: npm run type-check
+        timeout-minutes: 3
+
+      - name: Lint (Frontend)
+        working-directory: ./frontend
+        run: npm run lint
+        timeout-minutes: 3
+
+      - name: Build (Frontend)
+        working-directory: ./frontend
+        run: npm run build
+        timeout-minutes: 10
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Build (Backend)
+        working-directory: ./backend
+        run: npm run build
+        timeout-minutes: 5
+
+      - name: Upload build artifacts
+        if: needs.pre-check.outputs.should-deploy == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            frontend/.next/
+            backend/dist/
+          retention-days: 1
+
+  # Safe deployment to self-hosted runner
+  deploy:
+    name: Deploy to VPS
+    runs-on: self-hosted
+    timeout-minutes: 15
+    needs: [pre-check, build-and-test]
+    if: needs.pre-check.outputs.should-deploy == 'true'
+
+    environment:
+      name: production
+      url: https://prompt-assistant.dukang.online
+
+    steps:
+      - name: Cleanup workspace
+        run: |
+          # Safe cleanup to prevent disk space issues
+          if [ -d "${{ github.workspace }}" ]; then
+            rm -rf "${{ github.workspace }}"
+          fi
+          mkdir -p "${{ github.workspace }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: ./
+
+      - name: Run deployment setup
+        run: |
+          # Make setup script executable
+          chmod +x scripts/deploy-setup.sh
+
+          # Run deployment setup to ensure environment is ready
+          echo "🔧 Running deployment setup to ensure VPS environment..."
+
+          # Set CI flag for non-interactive mode
+          export CI=true
+
+          # Run with timeout and error handling
+          timeout 600 bash scripts/deploy-setup.sh || {
+            echo "⚠️  Setup script completed with warnings or was already configured."
+            echo "Continuing with deployment..."
+            
+            # Basic checks to ensure minimum requirements
+            echo "🔍 Checking minimum requirements..."
+            
+            # Check if PM2 is installed
+            if ! command -v pm2 >/dev/null 2>&1; then
+              echo "Installing PM2..."
+              sudo npm install -g pm2 || npm install -g pm2
+            fi
+            
+            # Check if Nginx is running
+            if ! systemctl is-active --quiet nginx; then
+              echo "Starting Nginx..."
+              sudo systemctl start nginx || true
+            fi
+            
+            # Ensure deploy directories exist
+            sudo mkdir -p /home/deploy/apps/prompt_assistant /home/deploy/logs /home/deploy/backups
+            sudo chown -R deploy:deploy /home/deploy 2>/dev/null || true
+            
+            echo "✅ Minimum requirements verified"
+          }
+        timeout-minutes: 12
+        continue-on-error: true
+
+      - name: Validate deployment environment
+        run: |
+          echo "🔍 Validating deployment environment..."
+
+          # Check essential services
+          echo "Checking essential services:"
+
+          # Node.js version
+          if command -v node >/dev/null 2>&1; then
+            echo "✅ Node.js: $(node --version)"
+          else
+            echo "❌ Node.js not found"
+            exit 1
+          fi
+
+          # PM2
+          if command -v pm2 >/dev/null 2>&1; then
+            echo "✅ PM2: $(pm2 --version)"
+          else
+            echo "❌ PM2 not found"
+            exit 1
+          fi
+
+          # Nginx
+          if command -v nginx >/dev/null 2>&1; then
+            echo "✅ Nginx: $(nginx -v 2>&1)"
+          else
+            echo "❌ Nginx not found"
+            exit 1
+          fi
+
+          # Check directories
+          if [ -d "/home/deploy/apps/prompt_assistant" ]; then
+            echo "✅ Deploy directory exists"
+          else
+            echo "❌ Deploy directory not found"
+            sudo mkdir -p /home/deploy/apps/prompt_assistant
+            sudo chown -R deploy:deploy /home/deploy
+          fi
+
+          # Check permissions
+          if [ -w "/home/deploy/apps/prompt_assistant" ]; then
+            echo "✅ Deploy directory is writable"
+          else
+            echo "⚠️  Deploy directory permissions issue, fixing..."
+            sudo chown -R deploy:deploy /home/deploy
+          fi
+
+          echo "🎉 Environment validation completed"
+        timeout-minutes: 3
+
+      - name: Setup deployment environment
+        run: |
+          # Create deployment directory
+          export DEPLOY_DIR="/home/deploy/apps/prompt_assistant"
+          export BACKUP_DIR="/home/deploy/backups/$(date +%Y%m%d_%H%M%S)"
+
+          # Create backup of current deployment
+          if [ -d "$DEPLOY_DIR" ]; then
+            mkdir -p "$BACKUP_DIR"
+            cp -r "$DEPLOY_DIR" "$BACKUP_DIR/"
+          fi
+
+          # Store paths for next steps
+          echo "DEPLOY_DIR=$DEPLOY_DIR" >> $GITHUB_ENV
+          echo "BACKUP_DIR=$BACKUP_DIR" >> $GITHUB_ENV
+
+      - name: Create environment file
+        run: |
+          # Create .env file from GitHub Secrets
+          cat > "$DEPLOY_DIR/.env" << EOF
+          # Application Settings
+          NODE_ENV=production
+          APP_NAME=Prompt Assistant
+
+          # URLs
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          BACKEND_URL=${{ secrets.BACKEND_URL }}
+          API_BASE_URL=${{ secrets.API_BASE_URL }}
+          CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+
+          # Database
+          DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+          DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}
+          DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+
+          # Redis
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PORT=${{ secrets.REDIS_PORT }}
+          REDIS_URL=${{ secrets.REDIS_URL }}
+
+          # JWT
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN=7d
+
+          # Clerk
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SECRET=${{ secrets.CLERK_WEBHOOK_SECRET }}
+
+          # Clerk URLs
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+          NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/chat
+          NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/chat
+
+          # AI APIs
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+
+          # File Upload
+          MAX_FILE_SIZE=10485760
+          UPLOAD_DIR=./uploads
+
+          # Cloudinary
+          CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+          CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }}
+
+          # Ports
+          FRONTEND_PORT=3000
+          BACKEND_PORT=3001
+          EOF
+
+          # Set correct permissions
+          chmod 600 "$DEPLOY_DIR/.env"
+          chown deploy:deploy "$DEPLOY_DIR/.env"
+
+      - name: Stop services gracefully
+        run: |
+          # Stop PM2 processes gracefully
+          pm2 stop prompt-assistant-frontend || true
+          pm2 stop prompt-assistant-backend || true
+
+          # Wait for processes to stop
+          sleep 5
+
+          # Force kill if still running
+          pm2 delete prompt-assistant-frontend || true
+          pm2 delete prompt-assistant-backend || true
+
+      - name: Deploy application
+        run: |
+          # Ensure deployment directory exists
+          mkdir -p "$DEPLOY_DIR"
+
+          # Copy new files (excluding node_modules)
+          rsync -av --delete \
+            --exclude 'node_modules' \
+            --exclude '.git' \
+            --exclude '.env*' \
+            "${{ github.workspace }}/" \
+            "$DEPLOY_DIR/"
+
+          # Set correct permissions
+          chown -R deploy:deploy "$DEPLOY_DIR"
+        timeout-minutes: 5
+
+      - name: Install dependencies (Production)
+        run: |
+          cd "$DEPLOY_DIR"
+
+          # Frontend dependencies
+          cd frontend
+          npm ci --only=production --prefer-offline --no-audit
+
+          # Backend dependencies
+          cd ../backend
+          npm ci --only=production --prefer-offline --no-audit
+        timeout-minutes: 8
+
+      - name: Database migration (if needed)
+        run: |
+          cd "$DEPLOY_DIR/backend"
+
+          # Run migrations safely
+          npm run migration:run || echo "Migration failed or not needed"
+        timeout-minutes: 3
+
+      - name: Start services
+        run: |
+          cd "$DEPLOY_DIR"
+
+          # Start backend
+          pm2 start ecosystem.config.js --only prompt-assistant-backend
+
+          # Wait for backend to start
+          sleep 10
+
+          # Start frontend
+          pm2 start ecosystem.frontend.config.js --only prompt-assistant-frontend
+
+          # Save PM2 configuration
+          pm2 save
+        timeout-minutes: 5
+
+      - name: Health check
+        run: |
+          # Wait for services to fully start
+          sleep 30
+
+          # Check backend health
+          curl -f https://prompt-assistant.dukang.online/api/health || {
+            echo "Backend health check failed"
+            pm2 logs prompt-assistant-backend --lines 50
+            exit 1
+          }
+
+          # Check frontend health
+          curl -f https://prompt-assistant.dukang.online || {
+            echo "Frontend health check failed"
+            pm2 logs prompt-assistant-frontend --lines 50
+            exit 1
+          }
+
+          echo "✅ Deployment successful!"
+        timeout-minutes: 3
+
+      - name: Cleanup old backups
+        run: |
+          # Keep only last 5 backups
+          find /home/deploy/backups -maxdepth 1 -type d -name "20*" | \
+            sort -r | tail -n +6 | xargs rm -rf
+
+          # Clean up build artifacts
+          rm -rf build-artifacts/
+        timeout-minutes: 2
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🚨 Deployment failed, initiating rollback..."
+
+          # Stop failed deployment
+          pm2 stop all || true
+          pm2 delete all || true
+
+          # Restore backup if exists
+          if [ -d "$BACKUP_DIR/prompt_assistant" ]; then
+            rm -rf "$DEPLOY_DIR"
+            cp -r "$BACKUP_DIR/prompt_assistant" "$DEPLOY_DIR"
+            
+            # Restart from backup
+            cd "$DEPLOY_DIR"
+            pm2 start ecosystem.config.js
+            pm2 start ecosystem.frontend.config.js
+            pm2 save
+            
+            echo "✅ Rollback completed"
+          else
+            echo "❌ No backup found for rollback"
+          fi
+
+  # Notification job
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [build-and-test, deploy]
+    if: always() && needs.pre-check.outputs.should-deploy == 'true'
+    timeout-minutes: 2
+
+    steps:
+      - name: Notify Success
+        if: needs.deploy.result == 'success'
+        run: |
+          echo "🎉 Deployment successful!"
+          echo "Frontend: https://prompt-assistant.dukang.online"
+          echo "Backend: https://prompt-assistant.dukang.online/api"
+
+      - name: Notify Failure
+        if: needs.deploy.result == 'failure'
+        run: |
+          echo "🚨 Deployment failed!"
+          echo "Check logs and rollback was attempted."
