@@ -393,8 +393,8 @@ jobs:
           echo "🔨 Building frontend (this may take several minutes)..."
           echo "⏰ Build started at: $(date)"
           
-          # Build with reduced memory pressure
-          export NODE_OPTIONS="--max-old-space-size=1536"
+          # Build with increased memory for EC2
+          export NODE_OPTIONS="--max-old-space-size=3072"
           export NEXT_TELEMETRY_DISABLED=1
           export CI=true
           
@@ -428,7 +428,7 @@ jobs:
           npm run build
           
           echo "🎉 All builds completed successfully!"
-        timeout-minutes: 25
+        timeout-minutes: 30
 
       - name: Database migration (if needed)
         run: |
