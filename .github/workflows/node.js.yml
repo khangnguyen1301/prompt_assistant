@@ -1,7 +1,7 @@
-# Simple PM2 Restart Workflow
-# Only restarts existing PM2 processes without rebuild
+# Code Sync + PM2 Restart Workflow  
+# Syncs latest code to server then restarts PM2 processes
 
-name: PM2 Restart
+name: Sync & Restart
 
 on:
   push:
@@ -13,21 +13,59 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  restart:
-    name: Restart PM2 Services
+  sync-and-restart:
+    name: Sync Code & Restart PM2
     runs-on: self-hosted
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Sync code to deployment directory
+        run: |
+          echo "📥 Syncing latest code..."
+          
+          # Define deployment directory (từ ecosystem.config.js)
+          DEPLOY_DIR="/home/deploy/apps/prompt_assistant"
+          
+          # Backup current deployment
+          if [ -d "$DEPLOY_DIR" ]; then
+            cp -r "$DEPLOY_DIR" "$DEPLOY_DIR.backup.$(date +%Y%m%d_%H%M%S)" || true
+          fi
+          
+          # Create deployment directory if not exists
+          sudo mkdir -p "$DEPLOY_DIR" || true
+          
+          # Sync new code (exclude heavy directories)
+          sudo rsync -av --delete \
+            --exclude 'node_modules' \
+            --exclude '.git' \
+            --exclude '.next' \
+            --exclude 'dist' \
+            --exclude '*.log' \
+            "${{ github.workspace }}/" \
+            "$DEPLOY_DIR/"
+          
+          # Set correct ownership
+          sudo chown -R deploy:deploy "$DEPLOY_DIR" || true
+          
+          echo "✅ Code sync completed"
+
       - name: Restart PM2 processes
         run: |
           echo "🔄 Restarting PM2 processes..."
 
-          # Restart frontend
-          pm2 restart prompt-frontend || echo "⚠️ prompt-frontend not found"
+          # Restart backend first (API services)
+          pm2 restart prompt-assistant-backend || echo "⚠️ prompt-assistant-backend not found"
 
-          # Restart backend  
-          pm2 restart prompt-backend || echo "⚠️ prompt-backend not found"
+          # Wait a bit for backend to start
+          sleep 5
+
+          # Restart frontend
+          pm2 restart prompt-assistant-frontend || echo "⚠️ prompt-assistant-frontend not found"
 
           # Show status
           pm2 status
@@ -36,10 +74,17 @@ jobs:
 
       - name: Health check
         run: |
-          sleep 10
-
+          sleep 15
+          
+          # Check PM2 status
+          pm2 status
+          
           # Quick health checks
           curl -f http://localhost:3000 >/dev/null 2>&1 && echo "✅ Frontend OK" || echo "⚠️ Frontend check failed"
           curl -f http://localhost:3001 >/dev/null 2>&1 && echo "✅ Backend OK" || echo "⚠️ Backend check failed"
-
-          echo "🎉 Restart workflow completed"
+          
+          # Check external URLs if available
+          curl -f https://prompt-assistant.dukang.online >/dev/null 2>&1 && echo "✅ Public Frontend OK" || echo "⚠️ Public Frontend check failed"
+          curl -f https://prompt-assistant.dukang.online/api/health >/dev/null 2>&1 && echo "✅ Public Backend OK" || echo "⚠️ Public Backend check failed"
+          
+          echo "🎉 Code sync and restart workflow completed"
