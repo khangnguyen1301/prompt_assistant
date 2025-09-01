@@ -10,6 +10,7 @@ yarn-error.log*
 .env.local
 .env.development
 .env.production
+.env*
 .env.test
 *.env
 secrets-backup-*.txt

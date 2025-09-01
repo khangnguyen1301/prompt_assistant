@@ -89,12 +89,12 @@ jobs:
       - name: Show what was synced
         run: |
           echo "📊 Recent changes synced:"
-
+          
           DEPLOY_DIR="/home/deploy/apps/prompt_assistant"
-
+          
           # Show recently modified files (last 5 minutes)
           find "$DEPLOY_DIR" -type f -mmin -5 -not -path "*/node_modules/*" -not -path "*/.git/*" | head -20 || true
-
+          
           echo "🎯 Sync completed safely!"
 
       - name: Optional PM2 restart (commented out)
