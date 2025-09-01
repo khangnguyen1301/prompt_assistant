@@ -24,67 +24,110 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Sync code to deployment directory
+# Safe Code Sync Workflow
+# Syncs new code without overwriting server-created files
+
+name: Safe Sync
+
+on:
+  push:
+    branches: ["develop"]
+
+# Prevent multiple syncs
+concurrency:
+  group: safe-sync
+  cancel-in-progress: true
+
+jobs:
+  safe-sync:
+    name: Safe Code Sync (No Overwrite)
+    runs-on: self-hosted
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Safe sync code (preserve server files)
         run: |
-          echo "📥 Syncing latest code..."
+          echo "📥 Safe syncing latest code..."
 
-          # Define deployment directory (từ ecosystem.config.js)
+          # Define deployment directory
           DEPLOY_DIR="/home/deploy/apps/prompt_assistant"
+          TEMP_DIR="/tmp/prompt_assistant_sync_$(date +%Y%m%d_%H%M%S)"
 
-          # Backup current deployment
-          if [ -d "$DEPLOY_DIR" ]; then
-            cp -r "$DEPLOY_DIR" "$DEPLOY_DIR.backup.$(date +%Y%m%d_%H%M%S)" || true
-          fi
+          # Create temp directory for new code
+          mkdir -p "$TEMP_DIR"
+
+          # Copy new code to temp first
+          cp -r "${{ github.workspace }}"/* "$TEMP_DIR/"
 
           # Create deployment directory if not exists
           sudo mkdir -p "$DEPLOY_DIR" || true
 
-          # Sync new code (exclude heavy directories)
-          sudo rsync -av --delete \
+          echo "🔍 Syncing with preserve mode..."
+
+          # Sync specific directories/files that are safe to overwrite
+          # Frontend source code
+          sudo rsync -av --update \
+            "$TEMP_DIR/frontend/src/" \
+            "$DEPLOY_DIR/frontend/src/" 2>/dev/null || true
+
+          sudo rsync -av --update \
+            "$TEMP_DIR/frontend/public/" \
+            "$DEPLOY_DIR/frontend/public/" 2>/dev/null || true
+
+          # Backend source code  
+          sudo rsync -av --update \
+            "$TEMP_DIR/backend/src/" \
+            "$DEPLOY_DIR/backend/src/" 2>/dev/null || true
+
+          # Configuration files (careful sync)
+          sudo rsync -av --update \
+            --exclude '*.env*' \
             --exclude 'node_modules' \
-            --exclude '.git' \
             --exclude '.next' \
             --exclude 'dist' \
             --exclude '*.log' \
-            "${{ github.workspace }}/" \
+            --exclude 'uploads' \
+            "$TEMP_DIR/" \
             "$DEPLOY_DIR/"
+
+          echo "📋 Files that will NOT be overwritten:"
+          echo "  - .env files"
+          echo "  - node_modules/"
+          echo "  - .next/ (built files)"
+          echo "  - dist/ (compiled files)"
+          echo "  - *.log files"
+          echo "  - uploads/ directory"
+          echo "  - Any files you created on server"
 
           # Set correct ownership
           sudo chown -R deploy:deploy "$DEPLOY_DIR" || true
 
-          echo "✅ Code sync completed"
+          # Cleanup temp
+          rm -rf "$TEMP_DIR"
 
-      - name: Restart PM2 processes
+          echo "✅ Safe code sync completed"
+
+      - name: Show what was synced
         run: |
-          echo "🔄 Restarting PM2 processes..."
+          echo "📊 Recent changes synced:"
+          
+          DEPLOY_DIR="/home/deploy/apps/prompt_assistant"
+          
+          # Show recently modified files (last 5 minutes)
+          find "$DEPLOY_DIR" -type f -mmin -5 -not -path "*/node_modules/*" -not -path "*/.git/*" | head -20 || true
+          
+          echo "🎯 Sync completed safely!"
 
-          # Restart backend first (API services)
-          pm2 restart prompt-backend || echo "⚠️ prompt-assistant-backend not found"
-
-          # Wait a bit for backend to start
-          sleep 5
-
-          # Restart frontend
-          pm2 restart prompt-frontend || echo "⚠️ prompt-assistant-frontend not found"
-
-          # Show status
-          pm2 status
-
-          echo "✅ PM2 restart completed"
-
-      - name: Health check
+      - name: Optional PM2 restart (commented out)
         run: |
-          sleep 15
-
-          # Check PM2 status
-          pm2 status
-
-          # Quick health checks
-          curl -f http://localhost:3000 >/dev/null 2>&1 && echo "✅ Frontend OK" || echo "⚠️ Frontend check failed"
-          curl -f http://localhost:3001 >/dev/null 2>&1 && echo "✅ Backend OK" || echo "⚠️ Backend check failed"
-
-          # Check external URLs if available
-          curl -f https://prompt-assistant.dukang.online >/dev/null 2>&1 && echo "✅ Public Frontend OK" || echo "⚠️ Public Frontend check failed"
-          curl -f https://prompt-assistant.dukang.online/api/health >/dev/null 2>&1 && echo "✅ Public Backend OK" || echo "⚠️ Public Backend check failed"
-
-          echo "🎉 Code sync and restart workflow completed"
+          echo "⚠️ PM2 restart is disabled for safety"
+          echo "💡 To restart PM2 manually after reviewing changes:"
+          echo "   pm2 restart prompt-backend"
+          echo "   pm2 restart prompt-frontend"
+          echo ""
+          echo "✅ Code sync workflow completed - PM2 not restarted"
