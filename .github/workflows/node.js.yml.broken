@@ -1,3 +1,29 @@
+# Code Sync + PM2 Restart Workflow
+# Syncs latest code to server then restarts PM2 processes
+
+name: Sync & Restart
+
+on:
+  push:
+    branches: ["develop"]
+
+# Prevent multiple restarts
+concurrency:
+  group: pm2-restart
+  cancel-in-progress: true
+
+jobs:
+  sync-and-restart:
+    name: Sync Code & Restart PM2
+    runs-on: self-hosted
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
 # Safe Code Sync Workflow
 # Syncs new code without overwriting server-created files
 
