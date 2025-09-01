@@ -40,7 +40,7 @@ export class AuthService {
         this.logger.debug(`Token: ${token?.substring(0, 20)}...`);
 
         const session = await clerkClient.verifyToken(token, {
-          issuer: `https://fresh-cougar-64.clerk.accounts.dev`,
+          issuer: `https://clerk.dukang.online`,
           secretKey: this.configService.get<string>("CLERK_SECRET_KEY"),
         });
 

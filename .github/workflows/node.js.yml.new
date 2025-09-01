@@ -22,24 +22,24 @@ jobs:
       - name: Restart PM2 processes
         run: |
           echo "🔄 Restarting PM2 processes..."
-
+          
           # Restart frontend
           pm2 restart prompt-frontend || echo "⚠️ prompt-frontend not found"
-
+          
           # Restart backend  
           pm2 restart prompt-backend || echo "⚠️ prompt-backend not found"
-
+          
           # Show status
           pm2 status
-
+          
           echo "✅ PM2 restart completed"
 
       - name: Health check
         run: |
           sleep 10
-
+          
           # Quick health checks
           curl -f http://localhost:3000 >/dev/null 2>&1 && echo "✅ Frontend OK" || echo "⚠️ Frontend check failed"
           curl -f http://localhost:3001 >/dev/null 2>&1 && echo "✅ Backend OK" || echo "⚠️ Backend check failed"
-
+          
           echo "🎉 Restart workflow completed"

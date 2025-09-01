@@ -28,7 +28,7 @@ module.exports = {
       node_args: "--max-old-space-size=512", // Increased for EC2
     },
     {
-      name: "prompt-assistant-frontend", 
+      name: "prompt-assistant-frontend",
       script: "npm",
       args: "start",
       cwd: "/home/deploy/apps/prompt_assistant/frontend",
@@ -42,7 +42,7 @@ module.exports = {
         PORT: 3000,
       },
       error_file: "/home/deploy/logs/frontend-error.log",
-      out_file: "/home/deploy/logs/frontend-out.log", 
+      out_file: "/home/deploy/logs/frontend-out.log",
       log_file: "/home/deploy/logs/frontend.log",
       time: true,
       max_restarts: 10,
@@ -52,6 +52,6 @@ module.exports = {
       log_date_format: "YYYY-MM-DD HH:mm Z",
       merge_logs: true,
       node_args: "--max-old-space-size=512", // Increased for EC2
-    }
+    },
   ],
 };
